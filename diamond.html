@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex"><meta name="googlebot" content="noindex, nofollow, noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>다야 보유 및 판매 현황</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef3f5;--pn:#fff;--ink:#142630;--mut:#6b7f8a;--ln:#d9e3e8;--ac:#0b7a86;--ac2:#e7f4f5;--sa:#b5483a;--sa2:#fbece9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1b21;--pn:#16262e;--ink:#e6eff2;--mut:#8aa0aa;--ln:#27404b;--ac:#4fc3cf;--ac2:#14343a;--sa:#ef8a7b;--sa2:#3a2220}}
+:root[data-theme=dark]{--bg:#0f1b21;--pn:#16262e;--ink:#e6eff2;--mut:#8aa0aa;--ln:#27404b;--ac:#4fc3cf;--ac2:#14343a;--sa:#ef8a7b;--sa2:#3a2220}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:12px/1.4 'Noto Sans KR',system-ui,sans-serif}
+main{max-width:1200px;margin:0;padding:16px}
+h1{font-size:18px;margin:0 0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.sp{flex:1}
+button,input{font:inherit;color:inherit}
+button{border:1px solid var(--ln);background:var(--pn);border-radius:6px;padding:4px 9px;cursor:pointer}
+button:hover{border-color:var(--ac)}button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.tab.on{background:var(--ac);border-color:var(--ac);color:#fff}.tab.s.on{background:var(--sa);border-color:var(--sa)}
+.yr.on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:700}
+.stats{display:flex;flex-wrap:wrap;gap:20px;background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 14px;margin-bottom:10px}
+.stats b{font-size:18px;display:block;font-variant-numeric:tabular-nums}.stats span{color:var(--mut);font-size:11px}
+.wrap{overflow:auto;max-height:68vh;background:var(--pn);border:1px solid var(--ln);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;min-width:100%}
+th,td{border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);padding:0;background:var(--pn)}
+thead th{position:sticky;top:0;z-index:2;background:var(--ac2)}
+thead tr:nth-child(2) th{top:31px}
+.sale thead th{background:var(--sa2)}
+th:first-child,td:first-child{position:sticky;left:0;z-index:1;min-width:150px;text-align:left}thead th:first-child{z-index:3}
+.cell,.hd,.nm{width:100%;border:0;background:transparent;padding:3px 6px;text-align:left;min-width:72px}
+.cell{font-variant-numeric:tabular-nums}.cell:focus,.nm:focus,.hd:focus{background:var(--ac2)}
+.hd{text-align:left;font-weight:700}.memo{font-weight:400;font-size:12px;color:var(--mut)}
+.nm{text-align:left;min-width:80px}
+.rw{display:flex;align-items:center}.rw button{border:0;padding:2px 4px;color:var(--mut);background:transparent}
+.hdl{cursor:grab;user-select:none;padding:2px 5px;color:var(--mut)}
+tr.over td{box-shadow:inset 0 2px 0 var(--ac)}
+tr.tot td{font-weight:700;background:var(--ac2)}.sale tr.tot td{background:var(--sa2)}
+.tot .cell{font-weight:700}.x{opacity:.5}.x:hover{opacity:1;color:var(--sa)}.arm{color:#fff!important;background:var(--sa)!important;opacity:1}
+.add{display:flex;gap:6px}.add input{border:1px solid var(--ln);border-radius:6px;padding:5px 9px;background:var(--pn);width:150px}
+.warn{background:var(--sa2);border:1px solid var(--sa);color:var(--sa);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:500}.warn[hidden]{display:none}button:disabled{opacity:.4;cursor:not-allowed}
+.hint{color:var(--mut);font-size:11px;margin-top:8px}
+</style></head><body><main>
+<h1>다야 보유 및 판매 현황</h1>
+<div class="bar"><button class="tab on" data-tab="hold">보유현황</button><button class="tab s" data-tab="sale">판매현황</button><span id="yrs" class="bar" style="margin:0"></span><span class="sp"></span>
+<button data-a="fo">JSON 파일 열기</button><button data-a="fn">새 JSON 파일</button><button id="fr" data-a="fr" hidden>다시 연결</button></div>
+<div class="warn" id="warn">⚠ 데이터 파일(JSON)이 연결되지 않아 수정할 수 없습니다. 상단의 [JSON 파일 열기] 또는 [새 JSON 파일]로 파일을 연결해 주세요.</div>
+<div class="hint" id="fs" style="margin:0 0 8px">파일 연결 안 됨</div>
+<div class="stats" id="stats"></div>
+<div class="wrap" id="wrap"></div>
+<div class="bar" style="margin-top:10px"><div class="add"><input id="newc" placeholder="새 캐릭터 이름" maxlength="20"><button data-a="addc">캐릭터 추가</button></div>
+<div class="add"><button data-a="addp">열(월) 추가</button><input id="newy" type="number" placeholder="연도" style="width:80px"><button data-a="addy">연도 추가</button></div></div>
+<p class="hint">이름은 직접 수정 · ⠿ 끌어서 순서 변경 · 헤더 날짜도 수정 가능 · JSON 파일을 연결하면 변경할 때마다 그 파일에 자동 저장됩니다(PC Chrome·Edge). 연결이 없거나 끊어지면 수정할 수 없습니다. 캐릭터는 보유/판매 두 표에 함께 적용됩니다.</p>
+</main><script>
+const D0={"chars":[],"tabs":{"hold":{"periods":[{"id":"p0","y":2026,"l":"1월23일","m":""},{"id":"p1","y":2026,"l":"2월1일","m":""},{"id":"p2","y":2026,"l":"3월1일","m":""},{"id":"p3","y":2026,"l":"4월","m":""},{"id":"p4","y":2026,"l":"5월","m":""},{"id":"p5","y":2026,"l":"6월","m":""},{"id":"p6","y":2026,"l":"7월","m":""},{"id":"p7","y":2026,"l":"8월","m":""},{"id":"p8","y":2026,"l":"9월","m":""},{"id":"p9","y":2026,"l":"10월","m":""},{"id":"p10","y":2026,"l":"11월","m":""},{"id":"p11","y":2026,"l":"12월","m":""},{"id":"p12","y":2027,"l":"1월","m":""},{"id":"p13","y":2027,"l":"2월","m":""},{"id":"p14","y":2027,"l":"3월","m":""},{"id":"p15","y":2027,"l":"4월","m":""},{"id":"p16","y":2027,"l":"5월","m":""},{"id":"p17","y":2027,"l":"6월","m":""},{"id":"p18","y":2027,"l":"7월","m":""},{"id":"p19","y":2027,"l":"8월","m":""},{"id":"p20","y":2027,"l":"9월","m":""},{"id":"p21","y":2027,"l":"10월","m":""},{"id":"p22","y":2027,"l":"11월","m":""},{"id":"p23","y":2027,"l":"12월","m":""}],"v":{}},"sale":{"periods":[{"id":"p0","y":2026,"l":"1월","m":""},{"id":"p1","y":2026,"l":"2월","m":""},{"id":"p2","y":2026,"l":"3월","m":""},{"id":"p3","y":2026,"l":"4월","m":""},{"id":"p4","y":2026,"l":"5월","m":""},{"id":"p5","y":2026,"l":"6월","m":""},{"id":"p6","y":2026,"l":"7월","m":""},{"id":"p7","y":2026,"l":"8월","m":""},{"id":"p8","y":2026,"l":"9월","m":""},{"id":"p9","y":2026,"l":"10월","m":""},{"id":"p10","y":2026,"l":"11월","m":""},{"id":"p11","y":2026,"l":"12월","m":""},{"id":"p12","y":2027,"l":"1월","m":""},{"id":"p13","y":2027,"l":"2월","m":""},{"id":"p14","y":2027,"l":"3월","m":""},{"id":"p15","y":2027,"l":"4월","m":""},{"id":"p16","y":2027,"l":"5월","m":""},{"id":"p17","y":2027,"l":"6월","m":""},{"id":"p18","y":2027,"l":"7월","m":""},{"id":"p19","y":2027,"l":"8월","m":""},{"id":"p20","y":2027,"l":"9월","m":""},{"id":"p21","y":2027,"l":"10월","m":""},{"id":"p22","y":2027,"l":"11월","m":""},{"id":"p23","y":2027,"l":"12월","m":""}],"v":{}}}},K='dia-v1';let S,tab='hold',year=2026,arm=null,drag=null;
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}if(!S||!S.chars)S=JSON.parse(JSON.stringify(D0));
+const $=s=>document.querySelector(s),T=()=>S.tabs[tab],nm=v=>+v||0,fm=v=>v?(+v).toLocaleString('ko-KR'):'',esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let fh=null,fh0=null,wt;
+const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('dia-fs',1);q.onupgradeneeded=()=>q.result.createObjectStore('h');q.onsuccess=()=>r(q.result);q.onerror=j});
+const hput=async h=>{try{(await idb()).transaction('h','readwrite').objectStore('h').put(h,'fh')}catch(e){}};
+const hget=async()=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('h').objectStore('h').get('fh');q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
+const st=(m,w)=>{$('#fs').textContent=m;$('#fs').style.color=w?'var(--sa)':''};
+const wr=()=>{clearTimeout(wt);wt=setTimeout(async()=>{if(!fh)return;try{const w=await fh.createWritable();await w.write(JSON.stringify(S,null,1));await w.close();st('자동 저장됨 · '+fh.name+' · '+new Date().toLocaleTimeString('ko-KR'))}catch(e){fh0=fh;fh=null;$('#fr').hidden=false;lock();st('파일 연결이 끊어져 저장하지 못했습니다 — [다시 연결]을 눌러 주세요',1)}},300)};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}wr()};
+async function useFile(h,create){fh=h;await hput(h);$('#fr').hidden=true;
+if(!create){try{const t=await(await h.getFile()).text();if(t.trim()){const o=JSON.parse(t);if(!o.chars||!o.tabs)throw 0;S=o;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render();return st('연결됨 · '+h.name+' (불러옴, 이후 자동 저장)')}}catch(e){fh=null;lock();return st('올바른 데이터 파일이 아닙니다. 다른 파일을 선택해 주세요.',1)}}
+lock();wr()}
+async function pick(a){try{const ty=[{description:'JSON',accept:{'application/json':['.json']}}];let h;if(a=='fo')[h]=await window.showOpenFilePicker({types:ty});else h=await window.showSaveFilePicker({suggestedName:'다야_보유_및_판매_현황.json',types:ty});await useFile(h,a=='fn')}catch(e){if(e.name!='AbortError')st('이 브라우저/환경에서는 파일 연결을 쓸 수 없습니다. PC의 Chrome·Edge에서 열어 주세요.',1)}}
+async function reconnect(){try{if(await fh0.requestPermission({mode:'readwrite'})=='granted')useFile(fh0)}catch(e){st('다시 연결하지 못했습니다. 파일을 새로 선택해 주세요.',1)}}
+function lock(){const L=!fh;$('#warn').hidden=!L;document.querySelectorAll('#wrap input,#newc,#newy').forEach(i=>i.readOnly=L);document.querySelectorAll('#wrap button,[data-a=addc],[data-a=addp],[data-a=addy]').forEach(b=>b.disabled=L);document.querySelectorAll('.hdl').forEach(h=>h.draggable=!L)}
+function render(){const t=T(),ys=[...new Set(t.periods.map(p=>p.y))].sort();if(!ys.includes(year))year=ys[0];const ps=t.periods.filter(p=>p.y==year);
+document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab==tab));
+$('#yrs').innerHTML=ys.map(y=>`<button class="yr ${y==year?'on':''}" data-y="${y}">${y}년</button>`).join('');
+let h=`<table class="${tab}"><thead><tr><th><div class="hd" style="text-align:left">일자</div></th>${ps.map(p=>`<th><div class="rw"><input class="hd" data-pl="${p.id}" value="${esc(p.l)}"></div></th>`).join('')}</tr></thead><tbody>
+<tr class="tot"><td><div class="hd" style="text-align:left">합계</div></td>${ps.map(p=>`<td><div class="cell" id="t-${p.id}" style="padding:3px 6px"></div></td>`).join('')}</tr>`;
+S.chars.forEach((c,i)=>{h+=`<tr data-i="${i}"><td><div class="rw"><span class="hdl" draggable="true" data-i="${i}">⠿</span><input class="nm" data-n="${c.id}" value="${esc(c.name)}"><button class="x ${arm==c.id?'arm':''}" data-a="del" data-c="${c.id}">${arm==c.id?'삭제?':'✕'}</button></div></td>${ps.map(p=>`<td><input class="cell" inputmode="numeric" data-c="${c.id}" data-p="${p.id}" value="${fm(t.v[c.id]?.[p.id])}"></td>`).join('')}</tr>`});
+$('#wrap').innerHTML=h+'</tbody></table>';tot();lock()}
+function tot(){const t=T(),ps=t.periods.filter(p=>p.y==year);let last=null,sum=0;
+ps.forEach(p=>{const s=S.chars.reduce((a,c)=>a+nm(t.v[c.id]?.[p.id]),0);const e=$('#t-'+p.id);if(e)e.textContent=fm(s)||'0';sum+=s;if(s)last={l:p.l,s}});
+const all=t.periods.reduce((a,p)=>a+S.chars.reduce((b,c)=>b+nm(t.v[c.id]?.[p.id]),0),0);
+$('#stats').innerHTML=`<div><b>${fm(last?.s)||0}</b><span>${last?last.l+' 합계(최근 입력)':'입력 없음'}</span></div>${tab=='sale'?`<div><b>${fm(sum)||0}</b><span>${year}년 판매 합계</span></div>`:''}<div><b>${S.chars.length}</b><span>캐릭터 수</span></div>`}
+const mv=(i,j)=>{if(j<0||j>=S.chars.length||i==j)return;const[c]=S.chars.splice(i,1);S.chars.splice(j,0,c);save();render()};
+document.addEventListener('input',e=>{const d=e.target.dataset;if(e.target.classList.contains('cell')&&d.c){const v=parseInt(e.target.value.replace(/[^\d-]/g,''))||0;(T().v[d.c]??={})[d.p]=v;if(!v)delete T().v[d.c][d.p];save();tot()}});
+document.addEventListener('focusin',e=>{if(e.target.classList.contains('cell')&&e.target.dataset.c)e.target.value=e.target.value.replace(/,/g,'')});
+document.addEventListener('focusout',e=>{const el=e.target,d=el.dataset;if(el.classList.contains('cell')&&d.c)el.value=fm(T().v[d.c]?.[d.p]);
+if(d.n){const c=S.chars.find(c=>c.id==d.n),v=el.value.trim();if(v)c.name=v;else el.value=c.name;save()}
+if(d.pl){T().periods.find(p=>p.id==d.pl).l=el.value;save()}if(d.pm){T().periods.find(p=>p.id==d.pm).m=el.value;save()}});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,a=d.a;if(!fh&&!d.tab&&!d.y&&!['fo','fn','fr'].includes(a))return;
+if(d.tab){tab=d.tab;return render()}if(d.y){year=+d.y;return render()}
+if(a!='del'&&arm){arm=null}
+if(a=='del'){if(arm==d.c){S.chars=S.chars.filter(c=>c.id!=d.c);for(const k in S.tabs)delete S.tabs[k].v[d.c];arm=null;save()}else{arm=d.c;setTimeout(()=>{if(arm==d.c){arm=null;render()}},3000)}render()}
+else if(a=='addc'){const v=$('#newc').value.trim();if(!v)return $('#newc').focus();const id='c'+Date.now();S.chars.push({id,name:v});for(const k in S.tabs)S.tabs[k].v[id]={};$('#newc').value='';save();render()}
+else if(a=='addp'){const ps=T().periods.filter(p=>p.y==year),id='p'+Date.now();T().periods.push({id,y:year,l:(ps.length+1)+'월',m:''});save();render()}
+else if(a=='addy'){const y=+$('#newy').value;if(!y)return $('#newy').focus();for(const k in S.tabs)S.tabs[k].periods.push({id:'p'+Date.now()+k,y,l:'1월',m:''});year=y;$('#newy').value='';save();render()}
+else if(a=='delp'){const t=T();t.periods=t.periods.filter(p=>p.id!=d.p);for(const c in t.v)delete t.v[c][d.p];save();render()}
+else if(a=='fo'||a=='fn')pick(a);else if(a=='fr')reconnect();
+});
+document.addEventListener('dragstart',e=>{if(fh&&e.target.dataset.i!=null&&e.target.classList.contains('hdl')){drag=+e.target.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')}});
+document.addEventListener('dragover',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));r.classList.add('over')}});
+document.addEventListener('drop',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();const f=drag;drag=null;mv(f,+r.dataset.i)}});
+document.addEventListener('dragend',()=>{drag=null;document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'))});
+render();
+(async()=>{const h=await hget();if(!h)return;try{if(await h.queryPermission({mode:'readwrite'})=='granted')useFile(h);else{fh0=h;$('#fr').hidden=false;st('연결했던 파일: '+h.name+' — [다시 연결]을 눌러 권한을 허용해 주세요',1)}}catch(e){}})();
+</script></body></html>
