@@ -127,6 +127,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 .mgh.mgn0{position:sticky;left:0;z-index:3}
 .mgc{border-right:1px solid var(--ln);border-bottom:1px solid var(--ln);display:flex;align-items:stretch;min-height:28px;background:var(--pn)}
 .mgc.mgn{font-size:12px;font-weight:500;padding:0 8px;align-items:center;white-space:nowrap;position:sticky;left:0;z-index:1}
+.mgh .mxb.sm{flex:none;color:var(--tx)}
 .mci{width:100%;min-width:0;background:#ffffff22;border:1px solid #ffffff55;color:var(--hd-t);border-radius:4px;padding:1px 4px;font:inherit;font-size:12px;text-align:center}
 .mc{width:100%;height:28px;box-sizing:border-box;border:0;background:transparent;color:var(--tx);padding:5px 6px;font:inherit;font-size:13px;line-height:18px;resize:none;overflow:hidden}
 .mc:focus{outline:2px solid var(--ac);outline-offset:-2px;background:var(--bg)}
@@ -252,7 +253,7 @@ if(memoMode==="one"){var w=S.rows[memoR];mp.className="mp sm";document.getElemen
 body.innerHTML="<textarea id='mta' placeholder='메모를 입력하세요'"+rd+">"+esc(w.memo||"")+"</textarea>"+(ro?"<div class='mnote'>데이터 파일이 연결되지 않아 읽기만 할 수 있어요.</div>":"")}
 else{mp.className="mp";document.getElementById("mmt").textContent="통합 메모";dl.textContent="전체 지우기";
 var N=S.mcols.length,h="<div class='mg' style='grid-template-columns:max-content repeat("+N+",minmax(150px,1fr)) max-content'><div class='mgh mgn0'>캐릭터</div>";
-S.mcols.forEach(function(c,k){h+="<div class='mgh'><input class='mci' data-mc='"+k+"' value='"+esc(c)+"' maxlength='20' aria-label='열 이름'"+rd+"></div>"});
+S.mcols.forEach(function(c,k){h+="<div class='mgh'><input class='mci' data-mc='"+k+"' value='"+esc(c)+"' maxlength='20' aria-label='열 이름'"+rd+"><button class='mxb sm' data-mcdel='"+k+"' title='열 삭제' aria-label='"+esc(c)+" 열 삭제'"+(ro||N<=1?" disabled":"")+">×</button></div>"});
 h+="<div class='mgh'><button class='mxb sm' data-mcadd='1' title='열 추가'"+(ro||N>=12?" disabled":"")+">＋ 열</button></div>";
 S.rows.forEach(function(w,r){h+="<div class='mgc mgn'>"+esc(w.n)+"</div>";for(var k=0;k<N;k++)h+="<div class='mgc'><textarea class='mc' data-mt='"+r+":"+k+"' rows='1' aria-label='"+esc(w.n)+" "+esc(S.mcols[k])+"'"+rd+">"+esc((w.mt||[])[k]||"")+"</textarea></div>";h+="<div class='mgc'><button class='mxb sm' data-mrclear='"+r+"'"+dis+">지우기</button></div>"});
 body.innerHTML=h+"</div>"+(ro?"<div class='mnote'>데이터 파일이 연결되지 않아 읽기만 할 수 있어요.</div>":"")}}
@@ -273,6 +274,7 @@ document.getElementById("mbody").addEventListener("focusin",function(e){var t=e.
 document.getElementById("mbody").addEventListener("focusout",function(e){var t=e.target;if(t.className==="mc")t.style.height=""});
 document.getElementById("mbody").addEventListener("click",function(e){if(fNeed)return;var b=e.target.closest("button");if(!b)return;var d=b.dataset;
 if(d.mcadd){if(S.mcols.length>=12)return;S.mcols.push("새 열");S.rows.forEach(function(w){(w.mt=w.mt||[]).push("")});save();drawMemo()}
+else if(d.mcdel!==undefined){if(S.mcols.length<=1)return;var ck=+d.mcdel;if(S.rows.some(function(w){return hasTxt((w.mt||[])[ck])})&&!confirm("'"+S.mcols[ck]+"' 열을 삭제할까요? 모든 캐릭터의 해당 열 메모도 함께 지워집니다."))return;S.mcols.splice(ck,1);S.rows.forEach(function(w){(w.mt=w.mt||[]).splice(ck,1)});save();drawMemo()}
 else if(d.mrclear!==undefined){var w=S.rows[+d.mrclear];if((w.mt||[]).some(hasTxt)&&!confirm(w.n+" 캐릭터의 통합 메모를 모두 지울까요?"))return;w.mt=blanks(S.mcols.length);save();drawMemo()}});
 function nameCell(w,r){if(!edit)return esc(w.n);
 return"<span class='dg' data-drow='"+r+"' title='드래그해서 이동'>≡</span><input class='ni' data-nm='"+r+"' value='"+esc(w.n)+"' maxlength='12' aria-label='캐릭터 이름'><button class='mv"+(hasDiv(r+1)?" on":"")+"' data-ln='"+r+"' title='아래에 굵은 줄' aria-label='아래에 굵은 줄 켜기/끄기'"+(r===S.rows.length-1?" disabled":"")+">━</button><button class='del' data-del='"+r+"' aria-label='삭제'>×</button>"}
