@@ -81,6 +81,7 @@ table.sum tfoot td{font-weight:700;background:var(--empty)}
 <p class="hint">수정 시 기존 지급 체크는 유지됩니다. 사은품의 지급기간·최초지급월을 입력하면 회선별 지급현황 표가 자동으로 만들어집니다.</p>
 <button class="pri" id="save">회선 등록</button> <button id="cancel" style="display:none">수정 취소</button>
 </details>
+<p class="hint" style="text-align:center">버전 2026.10.09-b · 데이터 식별 코드 mobilegift-data</p>
 </div>
 <script>
 var KEY='giftmgr_v1';
@@ -258,7 +259,7 @@ async function attach(h,write){fh=h;fhPend=null;fhFail=false;idbPut(h);$('bLink'
  var f=pendFn;pendFn=null;if(f){if(replaced)msg('연결되었습니다. 파일 내용으로 데이터가 교체되어, 하려던 변경은 다시 해 주세요.');else f()}}
 async function sync(h){
  var t=await (await h.getFile()).text(),p=t.trim()?parseData(t):null;
- var go=async function(){if(p&&p.ts>TS){applyData(p.a,p.ts);await attach(h,false)}else await attach(h,true)};
+ var go=async function(){if(p&&p.ts>TS){applyData(p.a,p.ts);await attach(h,!p.id)}else await attach(h,true)};
  if(t.trim()&&(!p||!p.id)){
   msg('<b style="color:#d33">⚠ '+esc(h.name)+'</b>: 이 문서 전용 식별 코드가 없는 파일입니다'+(p?'':' (내용도 읽을 수 없습니다)')+'. 연결하면 이 파일에 자동 저장되어 기존 내용이 <b>덮어써질 수 있습니다.</b> 그래도 연결할까요? <button class="pri" id="ok">연결</button> <button id="no">연결 안 함</button>');
   $('ok').onclick=go;
@@ -277,7 +278,7 @@ async function openExisting(){
    return}
   var p=parseData(t);if(!p){msg('올바른 사은품 관리 JSON 파일이 아닙니다.');return}
   msg((p.id?'':NOID)+'<b>'+esc(h.name)+'</b>: 회선 '+p.a.length+'개. 현재 화면 데이터를 이 파일 내용으로 <b>교체</b>하고 연결합니다. <button class="pri" id="ok">연결</button> <button id="no">취소</button>');
-  $('ok').onclick=function(){applyData(p.a,p.ts);attach(h,false)};
+  $('ok').onclick=function(){applyData(p.a,p.ts);attach(h,!p.id)};
   $('no').onclick=function(){pendFn=null;msg('')}
  }catch(e){linkErr(e)}}
 async function newFile(){
