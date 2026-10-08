@@ -35,6 +35,7 @@ tr.tot td{font-weight:700;background:var(--ac2)}.sale tr.tot td{background:var(-
 .tot .cell{font-weight:700}.x{opacity:.5}.x:hover{opacity:1;color:var(--sa)}.arm{color:#fff!important;background:var(--sa)!important;opacity:1}
 .add{display:flex;gap:6px}.add input{border:1px solid var(--ln);border-radius:6px;padding:5px 9px;background:var(--pn);width:150px}
 .warn{background:var(--sa2);border:1px solid var(--sa);color:var(--sa);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:500}.warn[hidden]{display:none}button:disabled{opacity:.4;cursor:not-allowed}
+.ov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:9;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}.dlg{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;width:100%}.dlg p{margin:0 0 14px;white-space:pre-line}.ok{background:var(--ac);border-color:var(--ac);color:#fff}
 .hint{color:var(--mut);font-size:11px;margin-top:8px}
 </style></head><body><main>
 <h1>다야 보유 및 판매 현황</h1>
@@ -56,11 +57,20 @@ const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('dia-fs',1);q.onupgrade
 const hput=async h=>{try{(await idb()).transaction('h','readwrite').objectStore('h').put(h,'fh')}catch(e){}};
 const hget=async()=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('h').objectStore('h').get('fh');q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
 const st=(m,w)=>{$('#fs').textContent=m;$('#fs').style.color=w?'var(--sa)':''};
-const wr=()=>{clearTimeout(wt);wt=setTimeout(async()=>{if(!fh)return;try{const w=await fh.createWritable();await w.write(JSON.stringify(S,null,1));await w.close();st('자동 저장됨 · '+fh.name+' · '+new Date().toLocaleTimeString('ko-KR'))}catch(e){fh0=fh;fh=null;$('#fr').hidden=false;lock();st('파일 연결이 끊어져 저장하지 못했습니다 — [다시 연결]을 눌러 주세요',1)}},300)};
+const wr=()=>{clearTimeout(wt);wt=setTimeout(async()=>{if(!fh)return;try{const w=await fh.createWritable();await w.write(JSON.stringify({_app:ID,...S},null,1));await w.close();st('자동 저장됨 · '+fh.name+' · '+new Date().toLocaleTimeString('ko-KR'))}catch(e){fh0=fh;fh=null;$('#fr').hidden=false;lock();st('파일 연결이 끊어져 저장하지 못했습니다 — [다시 연결]을 눌러 주세요',1)}},300)};
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}wr()};
-async function useFile(h,create){fh=h;await hput(h);$('#fr').hidden=true;
-if(!create){try{const t=await(await h.getFile()).text();if(t.trim()){const o=JSON.parse(t);if(!o.chars||!o.tabs)throw 0;S=o;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render();return st('연결됨 · '+h.name+' (불러옴, 이후 자동 저장)')}}catch(e){fh=null;lock();return st('올바른 데이터 파일이 아닙니다. 다른 파일을 선택해 주세요.',1)}}
-lock();wr()}
+const ID='diamond-holdings-sales-v1';
+const ask=(m,ok)=>new Promise(r=>{const d=document.createElement('div');d.className='ov';d.innerHTML='<div class="dlg" role="dialog" aria-modal="true"><p></p><div class="bar" style="margin:0"><span class="sp"></span><button data-v="0">취소</button><button class="ok" data-v="1"></button></div></div>';d.querySelector('p').textContent=m;d.querySelector('.ok').textContent=ok;d.onclick=e=>{const v=e.target.dataset&&e.target.dataset.v;if(v!=null){d.remove();r(v=='1')}};document.body.append(d);d.querySelector('.ok').focus()});
+async function useFile(h,create){let w=true;
+if(!create){let t='';try{t=await(await h.getFile()).text()}catch(e){return st('파일을 읽지 못했습니다.',1)}
+const no=()=>st('연결을 취소했습니다.'+(fh?' 기존 연결 유지: '+fh.name:''),!fh);
+if(!t.trim()){if(!await ask('선택한 JSON 파일이 비어 있습니다.\n현재 화면의 데이터를 이 파일에 저장하며 연결할까요?','연결'))return no()}
+else{let o=null;try{o=JSON.parse(t)}catch(e){}
+if(!o||!o.chars||!o.tabs)return st('올바른 데이터 파일이 아닙니다. 다른 파일을 선택해 주세요.',1);
+if(o._app!=ID){if(!await ask('이 문서 전용 데이터 파일이 아닙니다. (전용 식별 코드 없음)\n그래도 이 파일을 읽어서 연결할까요?\n연결하면 이후 이 파일에 자동 저장되며 식별 코드가 추가됩니다.','읽어서 연결'))return no()}else w=false;
+delete o._app;S=o;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}}
+fh=h;await hput(h);$('#fr').hidden=true;render();
+if(w)wr();else st('연결됨 · '+h.name+' (불러옴, 이후 자동 저장)')}
 async function pick(a){try{const ty=[{description:'JSON',accept:{'application/json':['.json']}}];let h;if(a=='fo')[h]=await window.showOpenFilePicker({types:ty});else h=await window.showSaveFilePicker({suggestedName:'다야_보유_및_판매_현황.json',types:ty});await useFile(h,a=='fn')}catch(e){if(e.name!='AbortError')st('이 브라우저/환경에서는 파일 연결을 쓸 수 없습니다. PC의 Chrome·Edge에서 열어 주세요.',1)}}
 async function reconnect(){try{if(await fh0.requestPermission({mode:'readwrite'})=='granted')useFile(fh0)}catch(e){st('다시 연결하지 못했습니다. 파일을 새로 선택해 주세요.',1)}}
 function lock(){const L=!fh;$('#warn').hidden=!L;document.querySelectorAll('#wrap input,#newc,#newy').forEach(i=>i.readOnly=L);document.querySelectorAll('#wrap button,[data-a=addc],[data-a=addp],[data-a=addy]').forEach(b=>b.disabled=L);document.querySelectorAll('.hdl').forEach(h=>h.draggable=!L)}
