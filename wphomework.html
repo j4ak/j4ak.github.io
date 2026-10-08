@@ -26,8 +26,6 @@ h1{font-size:20px;margin:0}
 .hr .hi{flex:1;min-width:0}
 .rb{border:1px solid #ffffff77;background:#ffffff26;color:inherit;border-radius:3px;font-size:9px;line-height:12px;padding:0 3px;margin-left:3px;flex:none}
 .rb:hover{background:var(--ac);color:#2a2000;border-color:var(--ac)}
-thead tr:nth-child(2) .rb{border-color:var(--ln);background:var(--pn);color:var(--tx)}
-thead tr:nth-child(2) .rb:hover{background:var(--ac);color:#2a2000;border-color:var(--ac)}
 .sub{color:var(--mu);font-size:13px}
 .bar{height:8px;background:var(--na);border-radius:4px;margin:10px 0;overflow:hidden}
 .bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;margin:10px 0;max-width:760px}
@@ -35,7 +33,6 @@ thead tr:nth-child(2) .rb:hover{background:var(--ac);color:#2a2000;border-color:
 .pl b{color:var(--tx);font-weight:500}
 .pg .bar{margin:4px 0 0}
 td.nm.dn{background:var(--done);color:var(--done-t)}
-td.nm.dn .cnt{color:var(--done-t)}
 .bar i{display:block;height:100%;background:var(--done);width:0;transition:width .2s}
 .tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 button{font:inherit;cursor:pointer}
@@ -58,8 +55,6 @@ th.gs,td.gs{border-left:3px solid var(--mu)}
 thead tr:nth-child(2) .hi{color:var(--tx);background:var(--pn);border-color:var(--ln)}
 th.nm,td.nm{position:sticky;left:0;z-index:2;text-align:left;min-width:104px;padding:0 8px;background:var(--pn);font-weight:500;white-space:nowrap}
 th.nm{background:var(--hd);z-index:4}
-.cnt{float:right;margin-left:8px;font-size:11px;color:var(--mu)}
-.cnt.ok{color:var(--done)}
 td.c{width:52px;height:24px}
 td button.cell{width:100%;height:100%;min-height:24px;border:0;background:var(--na);padding:0;font-size:12px}
 td button.cell.T{background:var(--todo);color:var(--todo-t)}
@@ -73,7 +68,6 @@ td button.cell.N{background:repeating-linear-gradient(45deg,var(--na),var(--na) 
 button.cell:focus-visible,.tools button:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
 .del{border:0;background:none;color:var(--mu);float:right;font-size:16px;padding:0 0 0 6px;display:none}
 .edit .del{display:inline;float:none;font-size:16px;line-height:1;margin-left:2px}
-.edit .cnt{display:none}
 td.nm{font-size:12px;height:24px;line-height:1.2}
 .ni{width:84px;height:20px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);border-radius:5px;padding:0 6px;font:inherit;font-size:13px}
 .hi{width:100%;min-width:44px;height:22px;border:1px solid #ffffff55;background:#ffffff22;color:var(--hd-t);border-radius:4px;padding:0 2px;font:inherit;font-size:11px;text-align:center}
@@ -231,9 +225,9 @@ function render(){var DLO={2:dlOn(2),3:dlOn(3)};
 var gv=G.map(function(){return 0}),first={};for(var q=0;q<S.items.length;q++){if(!(edit||!S.hid[q]))continue;var gq=GI[q];if(!gv[gq])first[q]=1;gv[gq]++}
 var h="<thead><tr><th class='nm' rowspan='2'>"+memoAllBtn()+"캐릭터"+(edit?"<button class='rb ab' data-addrow='1' title='캐릭터 추가' aria-label='캐릭터 추가'>＋</button>":"")+"</th>";
 G.forEach(function(g,i){if(!gv[i])return;h+="<th class='g"+i+" gs"+(DLO[i]?" dl":"")+"' colspan='"+gv[i]+"'>"+"<span class='hr'>"+(edit?"<input class='hi' data-gp='"+i+"' style='min-width:"+tw(S.groups[i])+"px' value='"+esc(S.groups[i])+"' maxlength='8' aria-label='분류 이름'>":esc(S.groups[i]))+(DLO[i]&&!edit?"<span class='bd'>마감</span>":"")+rbtn("rg",i,S.groups[i])+(edit?"<button class='rb ab' data-addcol='"+i+"' title='항목 추가' aria-label='"+esc(S.groups[i])+" 항목 추가'>＋</button>":"")+"</span></th>"});
-h+="</tr><tr>"+S.items.map(function(t,i){if(!(edit||!S.hid[i]))return"";return"<th data-col='"+i+"' class='i"+GI[i]+(first[i]?" gs":"")+(S.hid[i]?" off":"")+"'>"+(edit?"<span class='hr'>"+(GI[i]>=1&&GI[i]<=4?"<span class='dg' data-dcol='"+i+"' title='드래그해서 이동'>≡</span>":"")+"<input class='hi' data-it='"+i+"' style='flex:none;width:"+tw(t)+"px' value='"+esc(t)+"' maxlength='10' aria-label='항목 이름'>"+rbtn("ri",i,t)+"</span><button class='hb' data-hide='"+i+"'>"+(S.hid[i]?"표시":"숨김")+"</button>"+(S.dt[i]?"":"<button class='hb"+(S.pg[i]?" on":"")+"' data-pg='"+i+"' title='진행중 상태 사용 (칸 우클릭으로 전환)'>"+(S.pg[i]?"진행 ✓":"진행")+"</button>")+"<button class='hb' data-delcol='"+i+"'"+(S.sizes[GI[i]]<=1?" disabled title='대분류마다 항목이 1개 이상 있어야 해요'":"")+">삭제</button>":"<span class='hr'>"+esc(t)+rbtn("ri",i,t)+"</span>")+"</th>"}).join("")+"</tr></thead><tbody>";
-S.rows.forEach(function(w,r){var dcn=dailyCount(w),left=dcn[0],tot=dcn[1];
-h+="<tr data-r='"+r+"'"+(hasDiv(r+1)?" class='dv'":"")+"><td class='nm"+(dailyDone(w)?" dn":"")+"'>"+memoBtn(w,r)+nameCell(w,r)+"<span class='cnt"+(left===0?" ok":"")+"'>"+(tot?left+"/"+tot:"-")+"</span></td>";
+h+="</tr><tr>"+S.items.map(function(t,i){if(!(edit||!S.hid[i]))return"";return"<th data-col='"+i+"' class='i"+GI[i]+(first[i]?" gs":"")+(S.hid[i]?" off":"")+"'>"+(edit?"<span class='hr'>"+(GI[i]>=1&&GI[i]<=4?"<span class='dg' data-dcol='"+i+"' title='드래그해서 이동'>≡</span>":"")+"<input class='hi' data-it='"+i+"' style='flex:none;width:"+tw(t)+"px' value='"+esc(t)+"' maxlength='10' aria-label='항목 이름'></span><button class='hb' data-hide='"+i+"'>"+(S.hid[i]?"표시":"숨김")+"</button>"+(S.dt[i]?"":"<button class='hb"+(S.pg[i]?" on":"")+"' data-pg='"+i+"' title='진행중 상태 사용 (칸 우클릭으로 전환)'>"+(S.pg[i]?"진행 ✓":"진행")+"</button>")+"<button class='hb' data-delcol='"+i+"'"+(S.sizes[GI[i]]<=1?" disabled title='대분류마다 항목이 1개 이상 있어야 해요'":"")+">삭제</button>":"<span class='hr'>"+esc(t)+"</span>")+"</th>"}).join("")+"</tr></thead><tbody>";
+S.rows.forEach(function(w,r){
+h+="<tr data-r='"+r+"'"+(hasDiv(r+1)?" class='dv'":"")+"><td class='nm"+(dailyDone(w)?" dn":"")+"'>"+memoBtn(w,r)+nameCell(w,r)+"</td>";
 for(var i=0;i<S.items.length;i++){if(!(edit||!S.hid[i]))continue;var s=w.c[i]||".",dtx="",dcl="";if(S.dt[i]&&s!=="."){var dv=w.dv&&w.dv[i];s=dv===ymd(new Date())?"D":"T";dcl=" dt";dtx=dv?mdTxt(dv):""}h+="<td class='c"+(DLO[GI[i]]?" dl":"")+(first[i]?" gs":"")+(S.hid[i]?" off":"")+"'><button class='cell "+(s==="."?"N":s)+dcl+"' data-r='"+r+"' data-i='"+i+"' aria-label='"+esc(w.n)+" "+S.items[i]+"'>"+dtx+"</button></td>"}
 h+="</tr>"});
 h+="</tbody>";
@@ -299,7 +293,7 @@ var pgb=e.target.closest("[data-pg]");if(pgb){var pk=+pgb.dataset.pg;S.pg[pk]=S.
 var ar=e.target.closest("[data-addrow]");if(ar){addRow();return}
 var ac=e.target.closest("[data-addcol]");if(ac){addCol(+ac.dataset.addcol);return}
 var dcb=e.target.closest("[data-delcol]");if(dcb){var di=+dcb.dataset.delcol;if(confirm("'"+S.items[di]+"' 항목을 삭제할까요? 모든 캐릭터의 해당 체크 상태도 함께 지워집니다."))delCol(di);return}
-var rb=e.target.closest("[data-rg],[data-ri]");if(rb){if(S.lock)return;var ra,rz;if(rb.dataset.rg!==undefined){var rr=range(+rb.dataset.rg);ra=rr[0];rz=rr[1]}else{ra=+rb.dataset.ri;rz=ra+1}resetCols(ra,rz);save();render();return}
+var rb=e.target.closest("[data-rg]");if(rb){if(S.lock)return;var rr=range(+rb.dataset.rg);resetCols(rr[0],rr[1]);save();render();return}
 var ln=e.target.closest("[data-ln]");if(ln){var b0=+ln.dataset.ln+1,x0=S.divs.indexOf(b0);if(x0>=0)S.divs.splice(x0,1);else S.divs.push(b0);save();render();return}
 var hb=e.target.closest("[data-hide]");if(hb){var k0=+hb.dataset.hide;S.hid[k0]=S.hid[k0]?0:1;save();render();return}
 var del=e.target.closest("[data-del]");if(del){var n=S.rows[+del.dataset.del];if(confirm(n.n+" 캐릭터를 삭제할까요?")){var dr=+del.dataset.del;S.rows.splice(dr,1);S.divs=S.divs.map(function(b){return b>dr?b-1:b}).filter(function(b,x,a){return b>=1&&b<S.rows.length&&a.indexOf(b)===x});save();render()}return}
