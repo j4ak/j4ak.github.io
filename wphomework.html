@@ -90,6 +90,8 @@ th.g2.dl,th.g3.dl{background:#e8590c}
 .bd{background:#fff;color:#e8590c;font-size:10px;line-height:14px;padding:0 5px;border-radius:7px;margin-left:5px;font-weight:700;flex:none}
 td.dl button.cell.P,td.dl button.cell.T{box-shadow:inset 0 0 0 2px #ffd43b}
 .hb.on{background:#f59f00;border-color:#f59f00;color:#2a1a00}
+.hb.au{flex:none;white-space:nowrap}
+.ao{margin-left:4px;font-size:12px;flex:none}
 .hb:disabled{opacity:.35;cursor:default}
 .rb.ab{font-size:12px;font-weight:700;line-height:12px}
 .lk button.cell{cursor:not-allowed}
@@ -147,7 +149,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 <div class="legend"><span style="--c:var(--todo)">미완료</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--na-l)">해당 없음</span></div>
 </header>
 <div class="wrap" id="wrap"><table id="tb"></table></div>
-<div class="note">칸을 누르면 미완료와 완료가 바뀝니다. 초기화는 위의 초기화 버튼으로 직접 합니다. 편집 모드에서는 캐릭터·항목·분류 이름을 직접 고치고, ≡ 손잡이를 끌어 캐릭터 순서와 일일·주간·월간·시즌 항목 순서를 바꾸고, ━ 버튼으로 캐릭터 아래에 굵은 줄을 넣고 빼며, 대분류의 ＋로 항목을 추가하고 항목 아래의 삭제·숨김 버튼으로 항목을 지우거나 감출 수 있습니다(숨긴 항목은 집계에서도 빠집니다). 진행중은 편집 모드에서 항목의 '진행'을 켠 뒤 칸을 우클릭하면 표시되고, 진행중 칸을 클릭하면 완료가 됩니다(집계에서는 미완료와 같게 셉니다). 일일 숙제를 모두 마치면 캐릭터 이름 칸이 녹색으로 바뀌고, 이벤트, 쿠폰, 제전은 진행바에 반영되지 않습니다. 데이터 파일을 연결해야 수정할 수 있고, 변경 내용은 연결한 JSON 파일에 자동으로 저장됩니다(이 브라우저에도 함께 저장됩니다).</div>
+<div class="note">칸을 누르면 미완료와 완료가 바뀝니다. 초기화는 위의 초기화 버튼으로 직접 합니다. 편집 모드에서는 캐릭터·항목·분류 이름을 직접 고치고, ≡ 손잡이를 끌어 캐릭터 순서와 일일·주간·월간·시즌 항목 순서를 바꾸고, ━ 버튼으로 캐릭터 아래에 굵은 줄을 넣고 빼며, 대분류의 ＋로 항목을 추가하고 항목 아래의 삭제·숨김 버튼으로 항목을 지우거나 감출 수 있습니다(숨긴 항목은 집계에서도 빠집니다). 진행중은 편집 모드에서 항목의 '진행'을 켠 뒤 칸을 우클릭하면 표시되고, 진행중 칸을 클릭하면 완료가 됩니다(집계에서는 미완료와 같게 셉니다). 편집 모드에서 일일·주간·월간 대분류 옆의 '자동초기화'를 켜면 각 마감 시각(오전 5시)이 지난 뒤 앱을 열었을 때 해당 분류가 자동으로 미완료로 돌아갑니다(켠 순간에는 초기화되지 않고 다음 마감부터 적용). 일일 숙제를 모두 마치면 캐릭터 이름 칸이 녹색으로 바뀌고, 이벤트, 쿠폰, 제전은 진행바에 반영되지 않습니다. 데이터 파일을 연결해야 수정할 수 있고, 변경 내용은 연결한 JSON 파일에 자동으로 저장됩니다(이 브라우저에도 함께 저장됩니다).</div>
 <div id="mm" class="mm" hidden><div id="mp" class="mp" role="dialog" aria-modal="true" aria-labelledby="mmt"><div class="mh"><b id="mmt"></b><span><button id="mdel">메모 삭제</button> <button id="mclose" aria-label="닫기">✕</button></span></div><div id="mbody"></div></div></div>
 <script>
 var G=[["이벤트",1],["일일",4],["주간",9],["월간",5],["시즌",2],["쿠폰",1],["제전",5]];
@@ -167,7 +169,7 @@ o.divs=Array.isArray(o.divs)?o.divs:[];
 o.lock=!!o.lock;
 o.sizes=Array.isArray(o.sizes)&&o.sizes.length===G.length?o.sizes:DS.slice();
 var N=o.sizes.reduce(function(a,b){return a+b},0);
-o.hid=fit(o.hid,[],N,0);o.pg=fit(o.pg,[],N,0);o.dt=fit(o.dt,[],N,0);o.mcols=Array.isArray(o.mcols)&&o.mcols.length?o.mcols.slice(0,12):["메모"];
+o.auto=fit(o.auto,[],G.length,0);o.ark=fit(o.ark,[],G.length,"");o.hid=fit(o.hid,[],N,0);o.pg=fit(o.pg,[],N,0);o.dt=fit(o.dt,[],N,0);o.mcols=Array.isArray(o.mcols)&&o.mcols.length?o.mcols.slice(0,12):["메모"];
 o.items=fit(o.items,it,N,"새 항목");o.groups=fit(o.groups,gp,G.length,"분류");
 o.rows.forEach(function(w){var c=w.c;while(c.length<N)c+=/[TDP]/.test(w.c)?'T':'.';w.c=c.slice(0,N);w.dv=fit(w.dv,[],N,"");w.dp=fit(w.dp,[],N,"");w.memo=typeof w.memo==="string"?w.memo:"";w.mt=fit(w.mt,[],o.mcols.length,"")});
 if(!o.m2){if(o.items[0]==="이벤트")o.items[0]="욕망의숲";o.dt[0]=1;o.rows.forEach(function(w){if(w.c[0]==="D"||w.c[0]==="P")w.c="T"+w.c.slice(1)});o.m2=1}
@@ -178,7 +180,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushFi
 var fNeed=false,fDirty=false,fh=null,fReady=false,fWt=null,fBusy=false,fLen=0,fForce=false,fOK=("showSaveFilePicker" in window&&"showOpenFilePicker" in window),FT=[{description:"JSON 데이터",accept:{"application/json":[".json"]}}];
 function setNeed(v,msg,rec){fNeed=v;document.body.classList.toggle("fneed",v);var nd=document.getElementById("need");nd.hidden=!v;
 if(v){document.getElementById("nmsg").textContent=msg||"";document.getElementById("nrec").hidden=!rec;document.getElementById("nnew").hidden=document.getElementById("nopen").hidden=!fOK}
-document.title=(v?"⚠ 연결 필요 - ":"")+"캐릭터 숙제 체크표";if(memoMode)drawMemo();["ed","lk"].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=v})}
+document.title=(v?"⚠ 연결 필요 - ":"")+"캐릭터 숙제 체크표";if(!v)setTimeout(autoReset,300);if(memoMode)drawMemo();["ed","lk"].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=v})}
 function fsSet(t){document.getElementById("fs").textContent=t}
 function fsOn(){fsSet("📁 "+fh.name+" 에 자동 저장 중 · 마지막 저장 "+new Date().toLocaleTimeString("ko-KR"))}
 function pushFile(){if(!fh||!fReady)return;clearTimeout(fWt);fWt=setTimeout(flushFile,400)}
@@ -235,7 +237,7 @@ function lockUI(){var b=document.getElementById("lk");b.innerHTML=S.lock?ICL:ICU
 function render(){var DLO={2:dlOn(2),3:dlOn(3)};
 var gv=G.map(function(){return 0}),first={};for(var q=0;q<S.items.length;q++){if(!(edit||!S.hid[q]))continue;var gq=GI[q];if(!gv[gq])first[q]=1;gv[gq]++}
 var h="<thead><tr><th class='nm' rowspan='2'>"+memoAllBtn()+"캐릭터"+(edit?"<button class='rb ab' data-addrow='1' title='캐릭터 추가' aria-label='캐릭터 추가'>＋</button>":"")+"</th>";
-G.forEach(function(g,i){if(!gv[i])return;h+="<th class='g"+i+" gs"+(DLO[i]?" dl":"")+"' colspan='"+gv[i]+"'>"+"<span class='hr'>"+(edit?"<input class='hi' data-gp='"+i+"' style='min-width:"+tw(S.groups[i])+"px' value='"+esc(S.groups[i])+"' maxlength='8' aria-label='분류 이름'>":esc(S.groups[i]))+(DLO[i]&&!edit?"<span class='bd'>마감</span>":"")+rbtn("rg",i,S.groups[i])+(edit?"<button class='rb ab' data-addcol='"+i+"' title='항목 추가' aria-label='"+esc(S.groups[i])+" 항목 추가'>＋</button>":"")+"</span></th>"});
+G.forEach(function(g,i){if(!gv[i])return;h+="<th class='g"+i+" gs"+(DLO[i]?" dl":"")+"' colspan='"+gv[i]+"'>"+"<span class='hr'>"+(edit?"<input class='hi' data-gp='"+i+"' style='min-width:"+tw(S.groups[i])+"px' value='"+esc(S.groups[i])+"' maxlength='8' aria-label='분류 이름'>":esc(S.groups[i]))+(DLO[i]&&!edit?"<span class='bd'>마감</span>":"")+(!edit&&i>=1&&i<=3&&S.auto[i]?"<span class='ao' title='자동 초기화 사용 중'>⟳</span>":"")+rbtn("rg",i,S.groups[i])+(edit&&i>=1&&i<=3?"<button class='hb au"+(S.auto[i]?" on":"")+"' data-auto='"+i+"' title='마감 시각(오전 5시)이 지나면 자동으로 미완료로 되돌립니다'>"+(S.auto[i]?"자동초기화 ✓":"자동초기화")+"</button>":"")+(edit?"<button class='rb ab' data-addcol='"+i+"' title='항목 추가' aria-label='"+esc(S.groups[i])+" 항목 추가'>＋</button>":"")+"</span></th>"});
 h+="</tr><tr>"+S.items.map(function(t,i){if(!(edit||!S.hid[i]))return"";return"<th data-col='"+i+"' class='i"+GI[i]+(first[i]?" gs":"")+(S.hid[i]?" off":"")+"'>"+(edit?"<span class='hr'>"+(GI[i]>=1&&GI[i]<=4?"<span class='dg' data-dcol='"+i+"' title='드래그해서 이동'>≡</span>":"")+"<input class='hi' data-it='"+i+"' style='flex:none;width:"+tw(t)+"px' value='"+esc(t)+"' maxlength='10' aria-label='항목 이름'></span><button class='hb' data-hide='"+i+"'>"+(S.hid[i]?"표시":"숨김")+"</button>"+(S.dt[i]?"":"<button class='hb"+(S.pg[i]?" on":"")+"' data-pg='"+i+"' title='진행중 상태 사용 (칸 우클릭으로 전환)'>"+(S.pg[i]?"진행 ✓":"진행")+"</button>")+"<button class='hb' data-delcol='"+i+"'"+(S.sizes[GI[i]]<=1?" disabled title='대분류마다 항목이 1개 이상 있어야 해요'":"")+">삭제</button>":"<span class='hr'>"+esc(t)+"</span>")+"</th>"}).join("")+"</tr></thead><tbody>";
 S.rows.forEach(function(w,r){
 h+="<tr data-r='"+r+"'"+(hasDiv(r+1)?" class='dv'":"")+"><td class='nm"+(dailyDone(w)?" dn":"")+"'>"+memoBtn(w,r)+nameCell(w,r)+"</td>";
@@ -245,6 +247,8 @@ h+="</tbody>";
 document.getElementById("tb").innerHTML=h;
 document.getElementById("tb").className=(edit?"edit":"")+(S.lock?" lk":"");lockUI();
 stats()}
+function pkey(k){var g=new Date(Date.now()-18000000);if(k===1)return ymd(g);if(k===2)return ymd(new Date(g.getFullYear(),g.getMonth(),g.getDate()-((g.getDay()+4)%7)));return g.getFullYear()+"-"+(g.getMonth()+1)}
+function autoReset(){if(fNeed||!fReady)return;var ch=0;for(var k=1;k<=3;k++){if(!S.auto[k])continue;var key=pkey(k);if(S.ark[k]===key)continue;if(S.ark[k]){var r=range(k);resetCols(r[0],r[1])}S.ark[k]=key;ch=1}if(ch){save();render()}}
 function hasDiv(b){return S.divs.indexOf(b)>=0}
 function tw(v){var w=10;String(v).split("").forEach(function(c){w+=c.charCodeAt(0)>255?12:7});return Math.max(w,40)}
 document.getElementById("tb").addEventListener("input",function(e){var el=e.target;if(el.dataset.it!==undefined)el.style.width=tw(el.value)+"px";else if(el.dataset.gp!==undefined)el.style.minWidth=tw(el.value)+"px"});
@@ -300,6 +304,7 @@ document.getElementById("tb").addEventListener("click",function(e){
 var mb=e.target.closest("[data-memo]");if(mb){openMemo(+mb.dataset.memo);return}
 var ma=e.target.closest("[data-memoall]");if(ma){openMemoAll();return}
 if(fNeed)return;
+var ab=e.target.closest("[data-auto]");if(ab){var ak=+ab.dataset.auto;S.auto[ak]=S.auto[ak]?0:1;S.ark[ak]=S.auto[ak]?pkey(ak):"";save();render();return}
 var pgb=e.target.closest("[data-pg]");if(pgb){var pk=+pgb.dataset.pg;S.pg[pk]=S.pg[pk]?0:1;if(!S.pg[pk])S.rows.forEach(function(w){if(w.c[pk]==="P")w.c=w.c.slice(0,pk)+"T"+w.c.slice(pk+1)});save();render();return}
 var ar=e.target.closest("[data-addrow]");if(ar){addRow();return}
 var ac=e.target.closest("[data-addcol]");if(ac){addCol(+ac.dataset.addcol);return}
@@ -340,7 +345,7 @@ document.getElementById("lk").onclick=function(){S.lock=!S.lock;save();render()}
 document.getElementById("ed").onclick=function(){edit=!edit;this.classList.toggle("on",edit);this.textContent=edit?"편집 끝내기":"편집 모드";render()};
 S=load();sync();render();initFile();
 function dlKey(){var D=calcDL();return D.w.dd+"/"+D.m.dd+"/"+ymd(new Date())}
-var dlk=dlKey();setInterval(function(){var k=dlKey();if(k!==dlk){dlk=k;if(!edit)render();else stats()}else stats()},60000);
+var dlk=dlKey();document.addEventListener("visibilitychange",function(){if(!document.hidden)autoReset()});setInterval(function(){autoReset();var k=dlKey();if(k!==dlk){dlk=k;if(!edit)render();else stats()}else stats()},60000);
 </script>
 </body>
 </html>
