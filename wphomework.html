@@ -151,7 +151,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 <div id="mm" class="mm" hidden><div id="mp" class="mp" role="dialog" aria-modal="true" aria-labelledby="mmt"><div class="mh"><b id="mmt"></b><span><button id="mdel">메모 삭제</button> <button id="mclose" aria-label="닫기">✕</button></span></div><div id="mbody"></div></div></div>
 <script>
 var G=[["이벤트",1],["일일",4],["주간",9],["월간",5],["시즌",2],["쿠폰",1],["제전",5]];
-var T=["욕망 의숲","룰렛","일퀘","잡화\n검칼","교환소","증표\n상점","파벌\n상점","시틈","결던","유니","세틈","주말","인과돌","광영","광영\n주화","황제\n문장","결던\n상점","수호탑","전설\n주문석","시틈\n상점","유니\n상점","BJ쿠폰","제전1","제전2","제전3","제전4","제전5"];
+var T=["욕망의숲","룰렛","일퀘","잡화\n검칼","교환소","증표\n상점","파벌\n상점","시틈","결던","유니","세틈","주말","인과돌","광영","광영\n주화","황제\n문장","결던\n상점","수호탑","전설\n주문석","시틈\n상점","유니\n상점","BJ쿠폰","제전1","제전2","제전3","제전4","제전5"];
 var START=[["캐릭터1","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터2","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터3","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터4","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터5","TTTTTTTTTTTTTTTTTTTTTTTTTTT"]];
 var DS=G.map(function(g){return g[1]}),GI=[],GS={};
 function sync(){G.forEach(function(g,i){g[1]=S.sizes[i]});GI=[];GS={};G.forEach(function(g,k){GS[GI.length]=1;for(var n=0;n<g[1];n++)GI.push(k)})}
@@ -168,7 +168,7 @@ var N=o.sizes.reduce(function(a,b){return a+b},0);
 o.hid=fit(o.hid,[],N,0);o.pg=fit(o.pg,[],N,0);o.dt=fit(o.dt,[],N,0);o.mcols=Array.isArray(o.mcols)&&o.mcols.length?o.mcols.slice(0,12):["메모"];
 o.items=fit(o.items,it,N,"새 항목");o.groups=fit(o.groups,gp,G.length,"분류");
 o.rows.forEach(function(w){var c=w.c;while(c.length<N)c+=/[TDP]/.test(w.c)?'T':'.';w.c=c.slice(0,N);w.dv=fit(w.dv,[],N,"");w.dp=fit(w.dp,[],N,"");w.memo=typeof w.memo==="string"?w.memo:"";w.mt=fit(w.mt,[],o.mcols.length,"")});
-if(!o.m2){if(o.items[0]==="이벤트")o.items[0]="욕망 의숲";o.dt[0]=1;o.rows.forEach(function(w){if(w.c[0]==="D"||w.c[0]==="P")w.c="T"+w.c.slice(1)});o.m2=1}
+if(!o.m2){if(o.items[0]==="이벤트")o.items[0]="욕망의숲";o.dt[0]=1;o.rows.forEach(function(w){if(w.c[0]==="D"||w.c[0]==="P")w.c="T"+w.c.slice(1)});o.m2=1}
 return o}
 function fit(a,d,n,f){a=Array.isArray(a)?a.slice(0,n):[];while(a.length<n)a.push(d[a.length]!==undefined?d[a.length]:f);return a}
 function load(){try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o&&o.rows)return norm(o)}}catch(e){}return fresh()}
