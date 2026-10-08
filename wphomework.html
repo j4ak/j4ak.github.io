@@ -155,11 +155,13 @@ var T=["욕망의숲","룰렛","일퀘","잡화\n검칼","교환소","증표\n�
 var START=[["캐릭터1","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터2","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터3","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터4","TTTTTTTTTTTTTTTTTTTTTTTTTTT"],["캐릭터5","TTTTTTTTTTTTTTTTTTTTTTTTTTT"]];
 var DS=G.map(function(g){return g[1]}),GI=[],GS={};
 function sync(){G.forEach(function(g,i){g[1]=S.sizes[i]});GI=[];GS={};G.forEach(function(g,k){GS[GI.length]=1;for(var n=0;n<g[1];n++)GI.push(k)})}
+var APPID="wphomework data";
+function idAsk(){return confirm("이 파일에는 '"+APPID+"' 식별 코드가 없어요.\n이 앱에서 만든 파일이 아니거나, 식별 코드가 생기기 전에 쓰던 예전 파일일 수 있어요.\n\n그래도 이 파일을 연결할까요?\n(연결하면 이 파일에 식별 코드가 추가되어 저장돼요)")}
 var KEY="hw-checklist-v1",edit=false,S;
 function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function wk(d){var m=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7));return ymd(m)}
 function fresh(){return norm({v:2,rows:START.map(function(r){return{n:r[0],c:r[1]}})})}
-function norm(o){var it=T.map(function(t){return t.replace('\n',' ')}),gp=G.map(function(g){return g[0]});
+function norm(o){o.app=APPID;var it=T.map(function(t){return t.replace('\n',' ')}),gp=G.map(function(g){return g[0]});
 if(!o.v){if(o.items&&o.items.length)o.items.unshift(it[0]);if(o.groups&&o.groups.length)o.groups.unshift(gp[0]);o.rows.forEach(function(w){w.c=(/[TDP]/.test(w.c)?"T":".")+w.c});o.v=2}
 o.divs=Array.isArray(o.divs)?o.divs:[];
 o.lock=!!o.lock;
@@ -192,24 +194,25 @@ async function pick(kind,opts){var ph=null;try{ph=await idbGet()}catch(e){}
 var o=Object.assign({id:"hw-data",types:FT},opts);if(ph)o.startIn=ph;
 try{return await(kind==="save"?showSaveFilePicker(o):showOpenFilePicker(o))}
 catch(e){if(e.name==="AbortError"||!ph)throw e;delete o.startIn;return await(kind==="save"?showSaveFilePicker(o):showOpenFilePicker(o))}}
-async function connectNew(){try{var h=await pick("save",{suggestedName:"homework-data.json"});var t0="";try{t0=await (await h.getFile()).text()}catch(e){}
+async function connectNew(){try{var h=await pick("save",{suggestedName:"homework-data.json"});var lg0=0,t0="";try{t0=await (await h.getFile()).text()}catch(e){}
 if(t0.trim()){var ok=false;try{var o0=JSON.parse(t0);ok=!!(o0&&o0.rows)}catch(e){}
 if(!ok){fsSet("⚠ 선택한 파일에 이미 다른 내용이 있어 덮어쓰지 않았어요. 다른 파일을 선택해 주세요.");return}
+if(o0.app!==APPID){if(!idAsk())return;lg0=1}
 if(!confirm("선택한 파일에 이미 데이터가 있어요. 덮어쓰지 않고 이 파일의 데이터를 불러옵니다.\n\n계속할까요?"))return;applyFile(t0)}
-fh=h;fReady=true;fDirty=false;setNeed(false);try{await idbSet(h)}catch(e){}document.getElementById("frec").hidden=true;if(t0.trim())fsOn();else await flushFile()}
+fh=h;fReady=true;fDirty=false;setNeed(false);try{await idbSet(h)}catch(e){}document.getElementById("frec").hidden=true;if(t0.trim()&&!lg0)fsOn();else await flushFile()}
 catch(e){if(e.name!=="AbortError")fsSet("⚠ 이 환경에서는 파일을 만들 수 없어요 ("+e.name+"). 파일을 내려받아 Chrome/Edge에서 직접 열어 주세요.")}}
 async function connectOpen(){try{var a=await pick("open",{multiple:false}),h=a[0];
 if((await h.requestPermission({mode:"readwrite"}))!=="granted"){fsSet("⚠ 쓰기 권한이 거부되었어요");return}
 var t=await (await h.getFile()).text();
 if(!t.trim()&&!confirm("파일이 비어 있어요. (구글 드라이브 동기화 중이어서 비어 보이는 것일 수도 있어요.)\n\n현재 화면의 데이터로 이 파일을 채울까요?\n취소하면 파일은 그대로 두고 연결하지 않아요."))return;
-if(t.trim()){var o=JSON.parse(t);if(!o||!o.rows)throw new Error("형식 오류");if(!confirm("현재 화면의 데이터가 이 파일의 데이터로 바뀝니다. 계속할까요?"))return;applyFile(t)}
-fh=h;fReady=true;fDirty=false;setNeed(false);try{await idbSet(h)}catch(e){}document.getElementById("frec").hidden=true;if(t.trim())fsOn();else await flushFile()}
+var lg=0;if(t.trim()){var o=JSON.parse(t);if(!o||!o.rows)throw new Error("형식 오류");if(o.app!==APPID){if(!idAsk())return;lg=1}if(!confirm("현재 화면의 데이터가 이 파일의 데이터로 바뀝니다. 계속할까요?"))return;applyFile(t)}
+fh=h;fReady=true;fDirty=false;setNeed(false);try{await idbSet(h)}catch(e){}document.getElementById("frec").hidden=true;if(t.trim()&&!lg)fsOn();else await flushFile()}
 catch(e){if(e.name!=="AbortError")fsSet("⚠ 파일을 불러오지 못했어요 ("+(e.message||e.name)+")")}}
 async function reconnect(){try{var h=fh;try{h=(await idbGet())||fh}catch(e){}if(!h)return;if((await h.requestPermission({mode:"readwrite"}))!=="granted"){fsSet("⚠ 권한이 거부되었어요");return}
 var t=await (await h.getFile()).text();fh=h;
 if(fDirty&&confirm("파일에 저장되지 못한 변경이 있어요.\n\n확인: 지금 화면의 데이터를 파일에 저장\n취소: 파일에 있는 데이터로 바꾸기")){fReady=true;fDirty=false;fForce=true;setNeed(false);document.getElementById("frec").hidden=true;await flushFile();return}
 if(!t.trim()&&!confirm("파일이 비어 있어요. (구글 드라이브 동기화 중이어서 비어 보이는 것일 수도 있어요.)\n\n현재 화면의 데이터로 이 파일을 채울까요?\n취소하면 파일은 그대로 두고 연결하지 않아요."))return;
-if(t.trim())applyFile(t);fReady=true;fDirty=false;setNeed(false);document.getElementById("frec").hidden=true;if(t.trim())fsOn();else await flushFile()}
+var lg=0;if(t.trim()){var o=JSON.parse(t);if(!o||!o.rows)throw new Error("형식 오류");if(o.app!==APPID){if(!idAsk())return;lg=1}applyFile(t)}fReady=true;fDirty=false;setNeed(false);document.getElementById("frec").hidden=true;if(t.trim()&&!lg)fsOn();else await flushFile()}
 catch(e){fsSet("⚠ 다시 연결하지 못했어요 ("+(e.message||e.name)+"). 새로 연결해 주세요.")}}
 function initFile(){setNeed(true,fOK?"데이터 파일이 연결되어 있지 않아요. 연결해야 수정할 수 있어요.":"이 브라우저는 데이터 파일 연결을 지원하지 않아요. Chrome 또는 Edge에서 열어 주세요.",false);var n=document.getElementById("fnew"),o=document.getElementById("fopen"),r=document.getElementById("frec");
 if(!fOK){n.hidden=o.hidden=true;fsSet("이 브라우저는 파일 연결을 지원하지 않아요 (Chrome/Edge 필요)");return}
