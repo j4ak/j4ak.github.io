@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet">
+<meta name="referrer" content="no-referrer"><title>휴대폰 회선 관리</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f6f7f8;--ink:#1d2329;--mut:#6b747d;--line:#dfe3e6;--ac:#1f5f8b;--blue:#cfe8fb;--yel:#ffee8c;--grn:#cdeeb4;--gry:#e3e4e6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+header{padding:12px 16px 8px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+h1{font-size:17px;margin:0 8px 0 0}
+button,select,input{font:inherit}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 10px;cursor:pointer}.btn:hover{border-color:var(--ac)}
+.btn.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tabs{display:flex}.tabs button{border:1px solid var(--line);background:#fff;padding:6px 14px;cursor:pointer;margin-left:-1px}
+.tabs button:first-child{border-radius:6px 0 0 6px;margin:0}.tabs button:last-child{border-radius:0 6px 6px 0}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.stat{display:flex;gap:18px;margin-left:auto;color:var(--mut)}.stat b{color:var(--ink);font-size:15px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.bar input,.bar select{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:#fff}
+#fs{color:var(--mut);margin-left:auto}#fs.dirty{color:#b3261e;font-weight:600}
+.wrap{overflow:auto;max-height:calc(100vh - 118px);margin:10px 16px;border:1px solid var(--line);background:#fff}
+table{border-collapse:collapse;table-layout:fixed}
+th{position:sticky;top:0;background:#eef1f3;border-bottom:1px solid #c9ced2;padding:6px 6px;text-align:left;white-space:nowrap;cursor:grab;z-index:2;font-weight:600;overflow:hidden;text-overflow:ellipsis;user-select:none}th.over{box-shadow:inset 3px 0 var(--ac)}th.drag{opacity:.4}
+td{border-bottom:1px solid var(--line);padding:0;white-space:nowrap;overflow:hidden}tr.dragover td{border-top:2px solid var(--ac)}th,td{border-right:1px solid #cfd4d8}td.gr{text-align:center;padding:0}.grip{cursor:grab;color:#889;font-size:16px;user-select:none}
+td input,td select{width:100%;border:0;background:transparent;padding:6px 6px;outline:none;min-height:30px}
+td input:focus,td select:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--ac)}
+td.ro{padding:6px;color:var(--mut);text-align:right}
+tr.main td.h{background:var(--blue)}
+tr.new td.h{background:var(--grn)}
+tr.life td.fe{background:var(--yel)}
+tr.closed td{background:var(--gry);color:#555}
+td.soon{background:#ffd9a8!important;font-weight:600}td.over{background:#ffb8b0!important;font-weight:600}
+.kp{display:flex}.kp .dp{width:0;padding:0;min-height:0;opacity:0;position:absolute}
+.cal{border:0;background:none;cursor:pointer;padding:0 4px}
+.act{display:flex;gap:4px;padding:3px 6px;align-items:center}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid #9aa;cursor:pointer;padding:0;background:#fff}
+.dot.b.on{background:#4fb3ec;border-color:#4fb3ec}.dot.y.on{background:#f2d400;border-color:#f2d400}.dot.g.on{background:#7cc652;border-color:#7cc652}
+.dot.b{border-color:#4fb3ec}.dot.y{border-color:#f2d400}.dot.g{border-color:#7cc652}
+.sm{border:1px solid var(--line);background:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:12px}
+dialog{border:1px solid var(--line);border-radius:10px;width:min(720px,94vw);padding:16px}
+dialog h3{margin:14px 0 6px}.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:#eef1f3;border-radius:14px;padding:3px 4px 3px 10px;display:flex;gap:4px;align-items:center}
+.chip button{border:0;background:none;cursor:pointer;color:#b3261e;font-size:14px}
+.add{margin-top:6px}.add input{border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+#warn{background:#fff1f0;color:#8a1c14;border:1px solid #f1b5af;border-left:6px solid #d93025;border-radius:6px;padding:8px 12px;margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:600}#warn[hidden]{display:none}#warn .btn{border-color:#d93025;color:#8a1c14}body.warn .wrap{max-height:calc(100vh - 170px)}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+</style></head><body>
+<header>
+ <div class="top"><h1>휴대폰 회선 관리</h1>
+  <div class="tabs" id="tabs"><button data-t="active" class="on">사용중 회선</button><button data-t="closed">해지 회선</button><button data-t="all">전체</button></div>
+  <button class="btn pri" id="add">+ 회선 추가</button>
+  <div class="stat"><span>사용중 회선 <b id="sCnt">0</b>개</span><span>월요금 합계 <b id="sFee">0</b>원</span><span>만료 임박(30일) <b id="sSoon">0</b>건</span></div></div>
+ <div class="bar">
+  <button class="btn" id="open">열기</button><button class="btn" id="save">저장</button><button class="btn" id="csv">CSV 내보내기</button><button class="btn" id="lists">항목 관리</button>
+  <input id="q" placeholder="검색 (번호, 기기, 요금제, 비고…)" size="26">
+  <select id="fc"></select><select id="fn"></select><select id="fp"></select>
+  <span id="fs">저장 안 함</span></div>
+ <div id="warn" hidden></div>
+</header>
+<div class="wrap"><table><thead><tr id="hr"></tr></thead><tbody id="tb"></tbody></table><div id="emp" class="empty" hidden>표시할 회선이 없습니다.</div></div>
+<dialog id="dlg"><div style="display:flex;justify-content:space-between"><b>항목 관리</b><button class="btn" id="dx">닫기</button></div><div id="dbody"></div></dialog>
+<input type="file" id="fi" accept=".json" hidden>
+<script>
+const INIT={"lists": {"carrier": ["핀다이렉트", "헬로모바일", "에이모바일", "시월모바일", "유모바일", "토스모바일", "티플러스", "인스모바일", "에스원모바일", "더원모바일", "슈가모바일", "모빙", "모나", "KG모바일", "U+다이렉트", "세븐모바일", "프리텔레콤"], "net": ["SKT", "KT", "LGU"], "device": ["삼성 플립4 eSim", "삼성 A42", "LG Q92(T)", "삼성 폴드2", "삼성 S20+(G)", "삼성 플립4B이심", "삼성 플립3", "삼성 폴드5", "삼성 S20+(P)", "LG Q92(W)", "홍미노트 9s", "삼성 폴드5 eSim", "삼성 S10", "삼성 플립2", "삼성 플립4", "삼성 플립4-2 eSim", "홍미노트7", "LG Q92(T)-2", "삼성 A10e", "LG Q92(T)1", "홍미노트7(1)", "홍미노트 9s (2)", "삼성 A102", "LG FOLDER", "LG X4 2019", "LG X2", "홍미노트 7 (2)"], "pay": ["국민카드", "현대카드", "산업은행", "KB카드"]}, "rows": []};
+const COLS=[["num","번호"],["carrier","통신사"],["net","망"],["device","사용기기"],["plan","요금제명"],["fee","월요금"],["open","개통일"],["days","경과일"],["pay","결제방법"],["planKeep","요금제유지"],["lineKeep","회선유지"],["memo","비고"],["call","통화"],["sms","문자"],["data","데이터"],["act","표시 / 관리"]];
+const W={"num": 119, "carrier": 124, "net": 63, "device": 168, "plan": 229, "fee": 73, "open": 140, "days": 73, "pay": 96, "planKeep": 189, "lineKeep": 146, "memo": 265, "call": 59, "sms": 59, "data": 87, "act": 290};
+const LK={carrier:"통신사",net:"망",device:"사용기기",pay:"결제방법"};
+let S=null,tab="active",sortK=null,sortD=1,dirty=false,handle=null,fname="",perm=false,timer=null,ready=false;
+const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())})();
+const pd=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");return m?new Date(+m[1],m[2]-1,+m[3]):null};
+const dd=d=>d?Math.floor((today-d)/864e5):null;
+const fmtPh=d=>d.length==11?d.replace(/(\d{3})(\d{4})(\d{4})/,"$1-$2-$3"):d.length==10?d.replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"):d;
+try{const t=localStorage.getItem("phoneDraft");S=t?JSON.parse(t):null}catch(e){}
+if(!S)S=JSON.parse(JSON.stringify(INIT));
+let nid=Math.max(0,...S.rows.map(r=>r.id))+1;
+function persist(){dirty=true;try{localStorage.setItem("phoneDraft",JSON.stringify(S))}catch(e){}status();clearTimeout(timer);timer=setTimeout(autoSave,500)}
+async function autoSave(){if(!handle)return;try{if(await handle.queryPermission({mode:"readwrite"})!="granted"){perm=false;status();return}perm=true;const w=await handle.createWritable();await w.write(JSON.stringify(S,null,1));await w.close();dirty=false;status()}catch(e){status("자동 저장 실패: "+e.message)}}
+const idb=(m,v)=>new Promise(res=>{try{const q=indexedDB.open("phoneDB",1);q.onupgradeneeded=()=>q.result.createObjectStore("h");q.onerror=()=>res(null);q.onsuccess=()=>{const st=q.result.transaction("h",m=="set"?"readwrite":"readonly").objectStore("h"),r=m=="set"?st.put(v,"fh"):st.get("fh");r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}}catch(e){res(null)}});
+function status(msg){const f=$("fs");let t,c="";
+ if(msg){t=msg;c="dirty"}else if(!handle){t=dirty?"저장 안 된 변경 있음 · '저장'으로 파일을 연결하세요":"저장됨"+(fname?" · "+fname:"");c=dirty?"dirty":""}
+ else if(!perm){t="파일 접근 권한 필요 · 화면을 한 번 클릭하세요 · "+fname;c="dirty"}
+ else{t=dirty?"저장 중…":"자동 저장됨 · "+fname}
+ f.textContent=t;f.className=c;
+ const w=$("warn");let h="";
+ if(ready){const B=(a,l)=>`<button class="btn" onclick="${a}">${l}</button>`;
+  if(msg)h="⚠ "+esc(msg)+B("$('save').click()","다시 저장");
+  else if(!window.showSaveFilePicker)h="⚠ 이 브라우저는 파일 자동 저장을 지원하지 않습니다. 크롬이나 엣지에서 사용해 주세요."+B("$('save').click()","파일로 다운로드");
+  else if(!handle)h="⚠ 파일이 연결되지 않았습니다. 지금 수정한 내용은 파일에 저장되지 않고 이 브라우저에만 임시로 남습니다."+B("$('open').click()","기존 파일 열기")+B("$('save').click()","새 파일로 저장");
+  else if(!perm)h="⚠ 파일 연결 대기 중입니다 ("+esc(fname)+"). 허용해야 자동 저장이 됩니다."+B("grant()","연결 허용")+B("$('open').click()","다른 파일 열기")}
+ w.innerHTML=h;w.hidden=!h;document.body.classList.toggle("warn",!!h)}
+async function grant(){try{if(await handle.requestPermission({mode:"readwrite"})=="granted"){perm=true;status();if(dirty)autoSave()}}catch(e){}}
+function isNew(r){const d=dd(pd(r.open));return r.isNew&&d!==null&&d<180}
+function opts(k,cur){const l=S.lists[k];let h='<option value=""></option>'+l.map(v=>`<option${v===cur?" selected":""}>${esc(v)}</option>`).join("");if(cur&&!l.includes(cur))h+=`<option selected>${esc(cur)}</option>`;return h}
+function fillFilters(){[["fc","carrier"],["fn","net"],["fp","pay"]].forEach(([id,k])=>{const e=$(id),v=e.value;e.innerHTML=`<option value="">${LK[k]} 전체</option>`+S.lists[k].map(x=>`<option>${esc(x)}</option>`).join("");e.value=v})}
+function expState(r,v){if(r.closed)return"";const d=pd(v);if(!d)return"";const n=-dd(d);return n<0?"over":n<=30?"soon":""}
+function rowsView(){const q=$("q").value.trim().toLowerCase(),fc=$("fc").value,fn=$("fn").value,fp=$("fp").value;
+ let a=S.rows.filter(r=>(tab=="all"||(tab=="closed")==!!r.closed)&&(!fc||r.carrier==fc)&&(!fn||r.net==fn)&&(!fp||r.pay==fp)&&(!q||[fmtPh(r.num),r.num,r.carrier,r.device,r.plan,r.memo,r.pay,r.planKeep,r.lineKeep].join(" ").toLowerCase().includes(q)));
+ if(sortK){const g=r=>sortK=="days"?-(dd(pd(r.open))??-1e9):sortK=="fee"?(+r.fee||0):(r[sortK]??"");a=[...a].sort((x,y)=>{const p=g(x),q=g(y);return(p>q?1:p<q?-1:0)*sortD})}
+ if(tab=="all")a=[...a].sort((x,y)=>!!x.closed-!!y.closed);return a}
+const KEYS=COLS.map(c=>c[0]).filter(k=>k!="act"),TT=Object.fromEntries(COLS);
+function order(){const o=(S.colOrder||[]).filter(k=>KEYS.includes(k));KEYS.forEach(k=>{if(!o.includes(k))o.push(k)});return o}
+function render(){fillFilters();const O=order();
+ $("hr").innerHTML=`<th style="width:34px;cursor:default"></th>`+O.map(k=>`<th draggable="true" data-k="${k}" style="width:${W[k]}px" title="드래그해서 항목 위치 이동">${TT[k]}</th>`).join("")+`<th data-k="act" style="width:${W.act}px;cursor:default">${TT.act}</th>`;
+ document.querySelector("table").style.width=O.reduce((s,k)=>s+W[k],W.act+34)+"px";
+ const a=rowsView();$("emp").hidden=a.length>0;
+ $("tb").innerHTML=a.map(r=>{const d=dd(pd(r.open));const cls=[r.closed?"closed":"",!r.closed&&r.main?"main":"",!r.closed&&isNew(r)?"new":"",!r.closed&&r.life?"life":""].join(" ");
+  const I=`data-i="${r.id}"`;
+  const t=(k,c="")=>`<td class="${c}"><input ${I} data-k="${k}" value="${esc(r[k])}"></td>`;
+  const s=(k,c="")=>`<td class="${c}"><select ${I} data-k="${k}">${opts(k,r[k])}</select></td>`;
+  const kp=k=>`<td class="${expState(r,r[k])}"><div class="kp"><input ${I} data-k="${k}" value="${esc(r[k])}"><input type="date" class="dp" ${I} data-k="${k}" tabindex="-1"><button class="cal" tabindex="-1">📅</button></div></td>`;
+  const C={num:`<td class="h"><input ${I} data-k="num" value="${esc(fmtPh(r.num||""))}" maxlength="13" inputmode="numeric" placeholder="숫자만 입력"></td>`,
+   carrier:s("carrier","h"),net:s("net","h"),device:s("device","h"),plan:t("plan","h"),
+   fee:`<td class="h fe"><input ${I} data-k="fee" value="${r.fee===""||r.fee==null?"":Number(r.fee).toLocaleString()}" inputmode="numeric" style="text-align:right"></td>`,
+   open:`<td><input type="date" ${I} data-k="open" value="${esc(r.open)}"></td>`,days:`<td class="ro">${d===null?"":d.toLocaleString()+"일"}</td>`,
+   pay:s("pay"),planKeep:kp("planKeep"),lineKeep:kp("lineKeep"),memo:t("memo"),call:t("call"),sms:t("sms"),data:t("data")};
+  return`<tr class="${cls}" ${I}>`+`<td class="gr"><span class="grip" data-grip title="드래그해서 회선 위치 이동">⠿</span></td>`+O.map(k=>C[k]).join("")+
+  `<td><div class="act"><button class="dot b ${r.main?"on":""}" data-a="main" ${I} title="주 사용 회선(파랑)"></button><button class="dot y ${r.life?"on":""}" data-a="life" ${I} title="평생할인(노랑)"></button><button class="dot g ${r.isNew?"on":""}" data-a="isNew" ${I} title="신규 개통(녹색, 180일 후 자동 해제)"></button><button class="sm" data-a="closed" ${I}>${r.closed?"복구":"해지"}</button><button class="sm" data-a="dup" ${I}>복제</button><button class="sm" data-a="del" ${I}>삭제</button></div></td></tr>`}).join("");
+ const act=S.rows.filter(r=>!r.closed);$("sCnt").textContent=act.length;$("sFee").textContent=act.reduce((s,r)=>s+(+r.fee||0),0).toLocaleString();
+ $("sSoon").textContent=act.filter(r=>["planKeep","lineKeep"].some(k=>expState(r,r[k])=="soon")).length}
+$("tb").addEventListener("change",e=>{const el=e.target,i=+el.dataset.i,k=el.dataset.k;if(!k)return;const r=S.rows.find(x=>x.id===i);let v=el.value;
+ if(k=="num")v=v.replace(/\D/g,"").slice(0,11);if(k=="fee")v=v.replace(/[^\d]/g,"")===""?"":+v.replace(/[^\d]/g,"");
+ r[k]=v;persist();const nx=document.activeElement;const key=nx&&nx.dataset&&nx.dataset.k?[nx.dataset.i,nx.dataset.k]:null;
+ setTimeout(()=>{render();if(key){const n=document.querySelector(`[data-i="${key[0]}"][data-k="${key[1]}"]:not(.dp)`);n&&n.focus()}},0)});
+$("tb").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.classList.contains("cal")){const p=b.parentNode.querySelector(".dp");try{p.showPicker()}catch(x){p.click()}return}
+ const a=b.dataset.a,i=+b.dataset.i,r=S.rows.find(x=>x.id===i);if(!a)return;
+ if(a=="del"){if(!confirm("이 회선을 삭제할까요?"))return;S.rows=S.rows.filter(x=>x!==r)}
+ else if(a=="dup"){S.rows.splice(S.rows.indexOf(r)+1,0,{...r,id:nid++})}
+ else r[a]=!r[a];persist();render()});
+$("tabs").addEventListener("click",e=>{const t=e.target.dataset.t;if(!t)return;tab=t;[...$("tabs").children].forEach(b=>b.classList.toggle("on",b.dataset.t==t));render()});
+["q","fc","fn","fp"].forEach(id=>$(id).addEventListener("input",render));
+$("add").onclick=()=>{const d=today,iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+ S.rows.unshift({id:nid++,num:"",carrier:"",net:"",device:"",plan:"",fee:"",open:iso,pay:"",planKeep:"",lineKeep:"",memo:"",call:"",sms:"",data:"",closed:false,main:false,life:false,isNew:true});
+ if(tab=="closed"){tab="active";[...$("tabs").children].forEach(b=>b.classList.toggle("on",b.dataset.t=="active"))}persist();render()};
+/* 파일 저장/열기 */
+const FT={types:[{description:"회선 데이터",accept:{"application/json":[".json"]}}]};
+function load(txt,name){const d=JSON.parse(txt);if(!d.rows||!d.lists)throw 0;S=d;nid=Math.max(0,...S.rows.map(r=>r.id))+1;fname=name||"";dirty=false;try{localStorage.setItem("phoneDraft",JSON.stringify(S))}catch(e){}status();render()}
+$("open").onclick=async()=>{try{if(window.showOpenFilePicker){const[h]=await showOpenFilePicker(FT);handle=h;perm=true;idb("set",h);const f=await h.getFile();load(await f.text(),f.name)}else $("fi").click()}catch(e){if(e.name!="AbortError")alert("파일을 열 수 없습니다. 이 프로그램에서 저장한 .json 파일인지 확인하세요.")}};
+$("fi").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{load(await f.text(),f.name)}catch(x){alert("올바른 데이터 파일이 아닙니다.")}e.target.value=""};
+$("save").onclick=async()=>{const txt=JSON.stringify(S,null,1);try{
+ if(window.showSaveFilePicker){if(!handle){handle=await showSaveFilePicker({...FT,suggestedName:"휴대폰회선.json"});idb("set",handle)}if(await handle.requestPermission({mode:"readwrite"})!="granted")return;perm=true;const w=await handle.createWritable();await w.write(txt);await w.close();fname=handle.name}
+ else{dl(txt,"휴대폰회선.json","application/json");fname="휴대폰회선.json"}
+ dirty=false;status()}catch(e){if(e.name!="AbortError")alert("저장하지 못했습니다: "+e.message)}};
+function dl(txt,name,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
+$("csv").onclick=()=>{const keys=COLS.filter(c=>!["days","act"].includes(c[0]));const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+ const l=[keys.map(c=>q(c[1])).join(",").concat(',"상태"')];S.rows.forEach(r=>l.push(keys.map(([k])=>q(k=="num"?fmtPh(r.num):r[k])).join(",")+","+q(r.closed?"해지":"사용중")));
+ dl("\ufeff"+l.join("\r\n"),"휴대폰회선.csv","text/csv")};
+/* 항목 관리 */
+function drawLists(){$("dbody").innerHTML=Object.keys(LK).map(k=>`<h3>${LK[k]}</h3><div class="chips">${S.lists[k].map((v,j)=>`<span class="chip">${esc(v)}<button data-k="${k}" data-j="${j}" title="삭제">✕</button></span>`).join("")}</div><div class="add"><input data-add="${k}" placeholder="새 ${LK[k]} 추가"> <button class="btn" data-addb="${k}">추가</button></div>`).join("")}
+$("lists").onclick=()=>{drawLists();$("dlg").showModal()};$("dx").onclick=()=>{$("dlg").close();render()};
+$("dbody").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.j!==undefined){S.lists[b.dataset.k].splice(+b.dataset.j,1)}
+ else if(b.dataset.addb){const k=b.dataset.addb,i=$("dbody").querySelector(`[data-add="${k}"]`),v=i.value.trim();if(!v)return;if(!S.lists[k].includes(v))S.lists[k].push(v)}
+ else return;persist();drawLists()});
+$("dbody").addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.dataset.add)$("dbody").querySelector(`[data-addb="${e.target.dataset.add}"]`).click()});
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
+/* 드래그 이동 */
+let dc=null,dr=null;
+$("hr").addEventListener("dragstart",e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k||k=="act")return;dc=k;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",k);e.target.classList.add("drag")});
+$("hr").addEventListener("dragover",e=>{if(!dc)return;const th=e.target.closest("th");if(!th||th.dataset.k=="act")return;e.preventDefault();[...$("hr").children].forEach(x=>x.classList.remove("over"));th.classList.add("over")});
+$("hr").addEventListener("drop",e=>{if(!dc)return;e.preventDefault();const th=e.target.closest("th"),t=th&&th.dataset.k;if(t&&t!="act"&&t!=dc){const o=order(),f=o.indexOf(dc),to=o.indexOf(t);o.splice(f,1);o.splice(to,0,dc);S.colOrder=o;persist()}dc=null;render()});
+$("hr").addEventListener("dragend",()=>{dc=null;render()});
+$("tb").addEventListener("mousedown",e=>{const g=e.target.closest("[data-grip]");if(g)g.closest("tr").draggable=true});
+document.addEventListener("mouseup",()=>$("tb").querySelectorAll("tr[draggable=true]").forEach(t=>t.draggable=false));
+$("tb").addEventListener("dragstart",e=>{const tr=e.target.closest&&e.target.closest("tr");if(!tr||!tr.draggable)return;dr=+tr.dataset.i;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","row")});
+$("tb").addEventListener("dragover",e=>{if(dr===null)return;e.preventDefault();$("tb").querySelectorAll(".dragover").forEach(x=>x.classList.remove("dragover"));const tr=e.target.closest("tr");tr&&tr.classList.add("dragover")});
+$("tb").addEventListener("drop",e=>{if(dr===null)return;e.preventDefault();const tr=e.target.closest("tr");
+ if(tr&&+tr.dataset.i!==dr){const tid=+tr.dataset.i,f=S.rows.findIndex(x=>x.id===dr),ot=S.rows.findIndex(x=>x.id===tid),r=S.rows.splice(f,1)[0];let t=S.rows.findIndex(x=>x.id===tid);if(f<ot)t++;S.rows.splice(t,0,r);sortK=null;persist()}
+ dr=null;render()});
+$("tb").addEventListener("dragend",()=>{dr=null;render()});
+status();render();dirty=false;status();
+idb("get").then(h=>{if(!h||!window.showOpenFilePicker){ready=true;status();return}handle=h;fname=h.name;h.queryPermission({mode:"readwrite"}).then(s=>{perm=s=="granted";ready=true;status()})});
+document.addEventListener("pointerdown",async()=>{if(!handle||perm)return;try{if(await handle.requestPermission({mode:"readwrite"})=="granted"){perm=true;status();if(dirty)autoSave()}}catch(e){}});
+</script></body></html>
