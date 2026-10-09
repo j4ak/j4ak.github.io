@@ -6,7 +6,7 @@
 :root[data-theme=dark]{--bg:#0f1b21;--pn:#16262e;--ink:#e6eff2;--mut:#8aa0aa;--ln:#27404b;--ac:#4fc3cf;--ac2:#14343a;--sa:#ef8a7b;--sa2:#3a2220}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:12px/1.4 'Noto Sans KR',system-ui,sans-serif}
-main{max-width:1200px;margin:0;padding:16px}
+main{margin:0;padding:16px}
 h1{font-size:18px;margin:0 0 12px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 .sp{flex:1}
@@ -48,7 +48,7 @@ tr.gb td{border-bottom:3px solid var(--ink)}.rw button.gon{color:var(--ink);back
 <div class="wrap" id="wrap"></div>
 <div class="bar" style="margin-top:10px"><div class="add"><input id="newc" placeholder="새 캐릭터 이름" maxlength="20"><button data-a="addc">캐릭터 추가</button></div>
 <div class="add"><button data-a="addp">열(월) 추가</button><input id="newy" type="number" placeholder="연도" style="width:80px"><button data-a="addy">연도 추가</button></div></div>
-<p class="hint">이름은 직접 수정 · ⠿ 끌어서 순서 변경 · 헤더 날짜도 수정 가능 · ━ 캐릭터 아래 구분선 굵게(그룹 구분) · 월 옆 ✕ 그 달 입력값 지우기 · JSON 파일을 연결하면 변경할 때마다 그 파일에 자동 저장됩니다(PC Chrome·Edge). 연결이 없거나 끊어지면 수정할 수 없습니다. 캐릭터는 보유/판매 두 표에 함께 적용됩니다.</p>
+<p class="hint">이름은 직접 수정 · ⠿ 끌어서 순서 변경 · 헤더 날짜도 수정 가능 · ━ 캐릭터 아래 구분선 굵게(그룹 구분) · 월 옆 R 그 달 입력값 초기화 · 값 입력 후 Enter 누르면 아래 칸으로 이동 · JSON 파일을 연결하면 변경할 때마다 그 파일에 자동 저장됩니다(PC Chrome·Edge). 연결이 없거나 끊어지면 수정할 수 없습니다. 캐릭터는 보유/판매 두 표에 함께 적용됩니다.</p>
 </main><script>
 const D0={"chars":[],"tabs":{"hold":{"periods":[{"id":"p0","y":2026,"l":"1월23일","m":""},{"id":"p1","y":2026,"l":"2월1일","m":""},{"id":"p2","y":2026,"l":"3월1일","m":""},{"id":"p3","y":2026,"l":"4월","m":""},{"id":"p4","y":2026,"l":"5월","m":""},{"id":"p5","y":2026,"l":"6월","m":""},{"id":"p6","y":2026,"l":"7월","m":""},{"id":"p7","y":2026,"l":"8월","m":""},{"id":"p8","y":2026,"l":"9월","m":""},{"id":"p9","y":2026,"l":"10월","m":""},{"id":"p10","y":2026,"l":"11월","m":""},{"id":"p11","y":2026,"l":"12월","m":""},{"id":"p12","y":2027,"l":"1월","m":""},{"id":"p13","y":2027,"l":"2월","m":""},{"id":"p14","y":2027,"l":"3월","m":""},{"id":"p15","y":2027,"l":"4월","m":""},{"id":"p16","y":2027,"l":"5월","m":""},{"id":"p17","y":2027,"l":"6월","m":""},{"id":"p18","y":2027,"l":"7월","m":""},{"id":"p19","y":2027,"l":"8월","m":""},{"id":"p20","y":2027,"l":"9월","m":""},{"id":"p21","y":2027,"l":"10월","m":""},{"id":"p22","y":2027,"l":"11월","m":""},{"id":"p23","y":2027,"l":"12월","m":""}],"v":{}},"sale":{"periods":[{"id":"p0","y":2026,"l":"1월","m":""},{"id":"p1","y":2026,"l":"2월","m":""},{"id":"p2","y":2026,"l":"3월","m":""},{"id":"p3","y":2026,"l":"4월","m":""},{"id":"p4","y":2026,"l":"5월","m":""},{"id":"p5","y":2026,"l":"6월","m":""},{"id":"p6","y":2026,"l":"7월","m":""},{"id":"p7","y":2026,"l":"8월","m":""},{"id":"p8","y":2026,"l":"9월","m":""},{"id":"p9","y":2026,"l":"10월","m":""},{"id":"p10","y":2026,"l":"11월","m":""},{"id":"p11","y":2026,"l":"12월","m":""},{"id":"p12","y":2027,"l":"1월","m":""},{"id":"p13","y":2027,"l":"2월","m":""},{"id":"p14","y":2027,"l":"3월","m":""},{"id":"p15","y":2027,"l":"4월","m":""},{"id":"p16","y":2027,"l":"5월","m":""},{"id":"p17","y":2027,"l":"6월","m":""},{"id":"p18","y":2027,"l":"7월","m":""},{"id":"p19","y":2027,"l":"8월","m":""},{"id":"p20","y":2027,"l":"9월","m":""},{"id":"p21","y":2027,"l":"10월","m":""},{"id":"p22","y":2027,"l":"11월","m":""},{"id":"p23","y":2027,"l":"12월","m":""}],"v":{}}}},K='dia-v1';let S,tab='hold',year=2026,arm=null,drag=null;
 try{S=JSON.parse(localStorage.getItem(K))}catch(e){}if(!S||!S.chars)S=JSON.parse(JSON.stringify(D0));
@@ -78,7 +78,7 @@ function lock(){const L=!fh;$('#warn').hidden=!L;document.querySelectorAll('#wra
 function render(){const t=T(),ys=[...new Set(t.periods.map(p=>p.y))].sort();if(!ys.includes(year))year=ys[0];const ps=t.periods.filter(p=>p.y==year);
 document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab==tab));
 $('#yrs').innerHTML=ys.map(y=>`<button class="yr ${y==year?'on':''}" data-y="${y}">${y}년</button>`).join('');
-let h=`<table class="${tab}"><thead><tr><th><div class="hd" style="text-align:left">일자</div></th>${ps.map(p=>`<th><div class="rw"><input class="hd" data-pl="${p.id}" value="${esc(p.l)}"><button class="x" data-a="clrp" data-p="${p.id}" title="이 달 입력값 모두 지우기">✕</button></div></th>`).join('')}</tr></thead><tbody>
+let h=`<table class="${tab}"><thead><tr><th><div class="hd" style="text-align:left">일자</div></th>${ps.map(p=>`<th><div class="rw"><input class="hd" data-pl="${p.id}" value="${esc(p.l)}"><button class="x" data-a="clrp" data-p="${p.id}" title="이 달 입력값 초기화 (Reset)">R</button></div></th>`).join('')}</tr></thead><tbody>
 <tr class="tot"><td><div class="hd" style="text-align:left">합계</div></td>${ps.map(p=>`<td><div class="cell" id="t-${p.id}" style="padding:3px 6px"></div></td>`).join('')}</tr>`;
 S.chars.forEach((c,i)=>{h+=`<tr data-i="${i}" class="${c.g?'gb':''}"><td><div class="rw"><span class="hdl" draggable="true" data-i="${i}">⠿</span><input class="nm" data-n="${c.id}" value="${esc(c.name)}"><button class="${c.g?'gon':''}" data-a="grp" data-c="${c.id}" title="아래 구분선 굵게 (다시 누르면 해제)">━</button><button class="x ${arm==c.id?'arm':''}" data-a="del" data-c="${c.id}">${arm==c.id?'삭제?':'✕'}</button></div></td>${ps.map(p=>`<td><input class="cell" inputmode="numeric" data-c="${c.id}" data-p="${p.id}" value="${fm(t.v[c.id]?.[p.id])}"></td>`).join('')}</tr>`});
 $('#wrap').innerHTML=h+'</tbody></table>';tot();lock()}
@@ -104,6 +104,7 @@ else if(a=='addy'){const y=+$('#newy').value;if(!y)return $('#newy').focus();for
 else if(a=='delp'){const t=T();t.periods=t.periods.filter(p=>p.id!=d.p);for(const c in t.v)delete t.v[c][d.p];save();render()}
 else if(a=='fo'||a=='fn')pick(a);else if(a=='fr')reconnect();
 });
+document.addEventListener('keydown',e=>{const el=e.target;if(e.key!='Enter'||!el.classList||!el.classList.contains('cell')||!el.dataset.c||e.isComposing)return;e.preventDefault();const tr=el.closest('tr'),nx=e.shiftKey?tr.previousElementSibling:tr.nextElementSibling,i=nx&&nx.querySelector('input[data-p="'+el.dataset.p+'"]');if(i){i.focus();i.select()}else el.blur()});
 document.addEventListener('dragstart',e=>{if(fh&&e.target.dataset.i!=null&&e.target.classList.contains('hdl')){drag=+e.target.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')}});
 document.addEventListener('dragover',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));r.classList.add('over')}});
 document.addEventListener('drop',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();const f=drag;drag=null;mv(f,+r.dataset.i)}});
