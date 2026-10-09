@@ -18,16 +18,16 @@ button:hover{border-color:var(--ac)}button:focus-visible,input:focus-visible{out
 .stats{display:flex;flex-wrap:wrap;gap:20px;background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 14px;margin-bottom:10px}
 .stats b{font-size:18px;display:block;font-variant-numeric:tabular-nums}.stats span{color:var(--mut);font-size:11px}
 .wrap{overflow:auto;max-height:68vh;background:var(--pn);border:1px solid var(--ln);border-radius:8px}
-table{border-collapse:separate;border-spacing:0;min-width:100%}
+table{table-layout:fixed;border-collapse:separate;border-spacing:0}
 th,td{border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);padding:0;background:var(--pn)}
 thead th{position:sticky;top:0;z-index:2;background:var(--ac2)}
 thead tr:nth-child(2) th{top:31px}
 .sale thead th{background:var(--sa2)}
-th:first-child,td:first-child{position:sticky;left:0;z-index:1;min-width:150px;text-align:left}thead th:first-child{z-index:3}
-.cell,.hd,.nm{width:100%;border:0;background:transparent;padding:3px 6px;text-align:left;min-width:72px}
+th:first-child,td:first-child{position:sticky;left:0;z-index:1;text-align:left}thead th:first-child{z-index:3}
+.cell,.hd,.nm{width:100%;border:0;background:transparent;padding:3px 6px;text-align:left;min-width:0}
 .cell{font-variant-numeric:tabular-nums}.cell:focus,.nm:focus,.hd:focus{background:var(--ac2)}
 .hd{text-align:left;font-weight:700}.memo{font-weight:400;font-size:12px;color:var(--mut)}
-.nm{text-align:left;min-width:80px}
+.nm{text-align:left;min-width:0;flex:1}.rw .hd{flex:1}
 .rw{display:flex;align-items:center}.rw button{border:0;padding:2px 4px;color:var(--mut);background:transparent}
 .hdl{cursor:grab;user-select:none;padding:2px 5px;color:var(--mut)}
 tr.over td{box-shadow:inset 0 2px 0 var(--ac)}
@@ -37,11 +37,12 @@ tr.tot td{font-weight:700;background:var(--ac2)}.sale tr.tot td{background:var(-
 .warn{background:var(--sa2);border:1px solid var(--sa);color:var(--sa);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:500}.warn[hidden]{display:none}button:disabled{opacity:.4;cursor:not-allowed}
 .ov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:9;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}.dlg{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;width:100%}.dlg p{margin:0 0 14px;white-space:pre-line}.ok{background:var(--ac);border-color:var(--ac);color:#fff}
 tr.gb td{border-bottom:3px solid var(--ink)}.rw button.gon{color:var(--ink);background:var(--ac2)}
+.bk{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ln)}
 .hint{color:var(--mut);font-size:11px;margin-top:8px}
 </style></head><body><main>
 <h1>다야 보유 및 판매 현황</h1>
 <div class="bar"><button class="tab on" data-tab="hold">보유현황</button><button class="tab s" data-tab="sale">판매현황</button><span id="yrs" class="bar" style="margin:0"></span><span class="sp"></span>
-<button data-a="fo">JSON 파일 열기</button><button data-a="fn">새 JSON 파일</button><button id="fr" data-a="fr" hidden>다시 연결</button></div>
+<button data-a="fo">JSON 파일 열기</button><button data-a="fn">새 JSON 파일</button><button id="fr" data-a="fr" hidden>다시 연결</button><button data-a="bk">백업 복원</button></div>
 <div class="warn" id="warn">⚠ 데이터 파일(JSON)이 연결되지 않아 수정할 수 없습니다. 상단의 [JSON 파일 열기] 또는 [새 JSON 파일]로 파일을 연결해 주세요.</div>
 <div class="hint" id="fs" style="margin:0 0 8px">파일 연결 안 됨</div>
 <div class="stats" id="stats"></div>
@@ -58,46 +59,59 @@ const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('dia-fs',1);q.onupgrade
 const hput=async h=>{try{(await idb()).transaction('h','readwrite').objectStore('h').put(h,'fh')}catch(e){}};
 const hget=async()=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('h').objectStore('h').get('fh');q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
 const st=(m,w)=>{$('#fs').textContent=m;$('#fs').style.color=w?'var(--sa)':''};
-const wr=()=>{clearTimeout(wt);wt=setTimeout(async()=>{if(!fh)return;try{const w=await fh.createWritable();await w.write(JSON.stringify({_app:ID,...S},null,1));await w.close();st('자동 저장됨 · '+fh.name+' · '+new Date().toLocaleTimeString('ko-KR'))}catch(e){fh0=fh;fh=null;$('#fr').hidden=false;lock();st('파일 연결이 끊어져 저장하지 못했습니다 — [다시 연결]을 눌러 주세요',1)}},300)};
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}wr()};
+const wr=()=>{clearTimeout(wt);wt=setTimeout(async()=>{if(!fh)return;try{const w=await fh.createWritable();await w.write(JSON.stringify({_app:ID,...S,_backups:BK}));await w.close();st('자동 저장됨 · '+fh.name+' · '+new Date().toLocaleTimeString('ko-KR'))}catch(e){fh0=fh;fh=null;$('#fr').hidden=false;lock();st('파일 연결이 끊어져 저장하지 못했습니다 — [다시 연결]을 눌러 주세요',1)}},300)};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}autoSnap();wr()};
 const ID='diamond-holdings-sales-v1';
 const ask=(m,ok)=>new Promise(r=>{const d=document.createElement('div');d.className='ov';d.innerHTML='<div class="dlg" role="dialog" aria-modal="true"><p></p><div class="bar" style="margin:0"><span class="sp"></span><button data-v="0">취소</button><button class="ok" data-v="1"></button></div></div>';d.querySelector('p').textContent=m;d.querySelector('.ok').textContent=ok;d.onclick=e=>{const v=e.target.dataset&&e.target.dataset.v;if(v!=null){d.remove();r(v=='1')}};document.body.append(d);d.querySelector('.ok').focus()});
-async function useFile(h,create){let w=true;
+async function useFile(h,create){let w=true;if(create)BK=[];
 if(!create){let t='';try{t=await(await h.getFile()).text()}catch(e){return st('파일을 읽지 못했습니다.',1)}
 const no=()=>st('연결을 취소했습니다.'+(fh?' 기존 연결 유지: '+fh.name:''),!fh);
-if(!t.trim()){if(!await ask('선택한 JSON 파일이 비어 있습니다.\n현재 화면의 데이터를 이 파일에 저장하며 연결할까요?','연결'))return no()}
+if(!t.trim()){if(!await ask('선택한 JSON 파일이 비어 있습니다.\n현재 화면의 데이터를 이 파일에 저장하며 연결할까요?','연결'))return no();BK=[]}
 else{let o=null;try{o=JSON.parse(t)}catch(e){}
 if(!o||!o.chars||!o.tabs)return st('올바른 데이터 파일이 아닙니다. 다른 파일을 선택해 주세요.',1);
 if(o._app!=ID){if(!await ask('이 문서 전용 데이터 파일이 아닙니다. (전용 식별 코드 없음)\n그래도 이 파일을 읽어서 연결할까요?\n연결하면 이후 이 파일에 자동 저장되며 식별 코드가 추가됩니다.','읽어서 연결'))return no()}else w=false;
-delete o._app;S=o;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}}
+const old=cj(),oc=S.chars.length;BK=Array.isArray(o._backups)?o._backups:[];delete o._backups;delete o._app;S=o;if(oc&&old!==cj())snap('파일 연결 직전 화면 데이터','risk',old);lastJ=cj();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}}
 fh=h;await hput(h);$('#fr').hidden=true;render();
 if(w)wr();else st('연결됨 · '+h.name+' (불러옴, 이후 자동 저장)')}
 async function pick(a){try{const ty=[{description:'JSON',accept:{'application/json':['.json']}}];let h;if(a=='fo')[h]=await window.showOpenFilePicker({types:ty});else h=await window.showSaveFilePicker({suggestedName:'다야_보유_및_판매_현황.json',types:ty});await useFile(h,a=='fn')}catch(e){if(e.name!='AbortError')st('이 브라우저/환경에서는 파일 연결을 쓸 수 없습니다. PC의 Chrome·Edge에서 열어 주세요.',1)}}
 async function reconnect(){try{if(await fh0.requestPermission({mode:'readwrite'})=='granted')useFile(fh0)}catch(e){st('다시 연결하지 못했습니다. 파일을 새로 선택해 주세요.',1)}}
-function lock(){const L=!fh;$('#warn').hidden=!L;document.querySelectorAll('#wrap input,#newc,#newy').forEach(i=>i.readOnly=L);document.querySelectorAll('#wrap button,[data-a=addc],[data-a=addp],[data-a=addy]').forEach(b=>b.disabled=L);document.querySelectorAll('.hdl').forEach(h=>h.draggable=!L)}
+function lock(){const L=!fh;$('#warn').hidden=!L;document.querySelectorAll('#wrap input,#newc,#newy').forEach(i=>i.readOnly=L);document.querySelectorAll('#wrap button,[data-a=addc],[data-a=addp],[data-a=addy],[data-a=bk]').forEach(b=>b.disabled=L);document.querySelectorAll('.hdl').forEach(h=>h.draggable=!L)}
+let BK=[],lastJ=null,autoT=0;const cj=()=>JSON.stringify({chars:S.chars,tabs:S.tabs});
+function snap(r,k,j){BK.push({t:Date.now(),r:r,k:k,d:JSON.parse(j||cj())});prune()}
+function autoSnap(){const n=Date.now(),cur=cj();if(lastJ&&lastJ!==cur&&n-autoT>=6e5){const lb=BK[BK.length-1];if(!(lb&&JSON.stringify(lb.d)===lastJ)){BK.push({t:n,r:'자동 (변경 직전 상태)',k:'auto',d:JSON.parse(lastJ)});prune()}autoT=n}lastJ=cur}
+function prune(){const n=Date.now(),seen={},keep=[];let rk=0;BK.sort((a,b)=>b.t-a.t);for(const b of BK){if(b.k=='risk'){if(rk++<10)keep.push(b);continue}const a=n-b.t,k=a<36e5?'m'+Math.floor(b.t/6e5):a<864e5?'h'+Math.floor(b.t/36e5):a<6048e5?'d'+new Date(b.t).toDateString():a<3024e6?'w'+Math.floor(b.t/6048e5):null;if(k&&!seen[k]){seen[k]=1;keep.push(b)}}BK=keep.sort((a,b)=>a.t-b.t)}
+function openBk(){if(!fh)return;const d=document.createElement('div');d.className='ov';d.innerHTML='<div class="dlg" style="max-width:540px"><p style="font-weight:700;margin-bottom:8px">백업 복원</p><div id="bkl" style="max-height:50vh;overflow:auto"></div><div class="bar" style="margin:10px 0 0"><span class="sp"></span><button data-v="x">닫기</button></div></div>';const box=d.querySelector('#bkl'),L=[...BK].reverse();if(!L.length)box.textContent='저장된 백업이 없습니다.';
+L.forEach(b=>{const r=document.createElement('div'),s=document.createElement('span'),x=document.createElement('button'),tm=new Date(b.t).toLocaleString('ko-KR');r.className='bk';s.textContent=tm+' · '+b.r+' · 캐릭터 '+b.d.chars.length+'명';x.textContent='복원';
+x.onclick=async()=>{if(await ask(tm+' 시점으로 복원할까요?\n복원 직전의 현재 상태도 백업으로 남습니다.','복원')){snap('복원 직전','risk');S.chars=JSON.parse(JSON.stringify(b.d.chars));S.tabs=JSON.parse(JSON.stringify(b.d.tabs));lastJ=cj();save();d.remove();render()}};r.append(s,x);box.append(r)});
+d.onclick=e=>{if(e.target===d||(e.target.dataset&&e.target.dataset.v=='x'))d.remove()};document.body.append(d)}
+function fit(){const cs=document.querySelectorAll('#wrap col');if(!cs.length)return;const t=T(),ps=t.periods.filter(p=>p.y==year),ff=getComputedStyle(document.body).fontFamily,cv=fit.c||(fit.c=document.createElement('canvas').getContext('2d')),w=(x,b)=>{cv.font=(b?'700':'400')+' 12px '+ff;return cv.measureText(x).width*1.1};
+const nw=Math.max(w('합계',1),...S.chars.map(c=>w(c.name)))+12+72;let tw=nw;
+ps.forEach((p,i)=>{let m=w(fm(S.chars.reduce((a,c)=>a+nm(t.v[c.id]&&t.v[c.id][p.id]),0))||'0',1);S.chars.forEach(c=>{m=Math.max(m,w(fm(t.v[c.id]&&t.v[c.id][p.id])))});const v=Math.ceil(Math.max(m+12,w(p.l,1)+12+22))+2;cs[i+1].style.width=v+'px';tw+=v});
+cs[0].style.width=Math.ceil(nw)+2+'px';tw+=2;$('#wrap table').style.width=tw+'px'}
 function render(){const t=T(),ys=[...new Set(t.periods.map(p=>p.y))].sort();if(!ys.includes(year))year=ys[0];const ps=t.periods.filter(p=>p.y==year);
 document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab==tab));
 $('#yrs').innerHTML=ys.map(y=>`<button class="yr ${y==year?'on':''}" data-y="${y}">${y}년</button>`).join('');
-let h=`<table class="${tab}"><thead><tr><th><div class="hd" style="text-align:left">일자</div></th>${ps.map(p=>`<th><div class="rw"><input class="hd" data-pl="${p.id}" value="${esc(p.l)}"><button class="x" data-a="clrp" data-p="${p.id}" title="이 달 입력값 초기화 (Reset)">R</button></div></th>`).join('')}</tr></thead><tbody>
+let h=`<table class="${tab}"><colgroup><col>${ps.map(()=>'<col>').join('')}</colgroup><thead><tr><th><div class="hd" style="text-align:left">일자</div></th>${ps.map(p=>`<th><div class="rw"><input class="hd" data-pl="${p.id}" value="${esc(p.l)}"><button class="x" data-a="clrp" data-p="${p.id}" title="이 달 입력값 초기화 (Reset)">R</button></div></th>`).join('')}</tr></thead><tbody>
 <tr class="tot"><td><div class="hd" style="text-align:left">합계</div></td>${ps.map(p=>`<td><div class="cell" id="t-${p.id}" style="padding:3px 6px"></div></td>`).join('')}</tr>`;
 S.chars.forEach((c,i)=>{h+=`<tr data-i="${i}" class="${c.g?'gb':''}"><td><div class="rw"><span class="hdl" draggable="true" data-i="${i}">⠿</span><input class="nm" data-n="${c.id}" value="${esc(c.name)}"><button class="${c.g?'gon':''}" data-a="grp" data-c="${c.id}" title="아래 구분선 굵게 (다시 누르면 해제)">━</button><button class="x ${arm==c.id?'arm':''}" data-a="del" data-c="${c.id}">${arm==c.id?'삭제?':'✕'}</button></div></td>${ps.map(p=>`<td><input class="cell" inputmode="numeric" data-c="${c.id}" data-p="${p.id}" value="${fm(t.v[c.id]?.[p.id])}"></td>`).join('')}</tr>`});
-$('#wrap').innerHTML=h+'</tbody></table>';tot();lock()}
+$('#wrap').innerHTML=h+'</tbody></table>';tot();lock();fit()}
 function tot(){const t=T(),ps=t.periods.filter(p=>p.y==year);let last=null,sum=0;
 ps.forEach(p=>{const s=S.chars.reduce((a,c)=>a+nm(t.v[c.id]?.[p.id]),0);const e=$('#t-'+p.id);if(e)e.textContent=fm(s)||'0';sum+=s;if(s)last={l:p.l,s}});
 const all=t.periods.reduce((a,p)=>a+S.chars.reduce((b,c)=>b+nm(t.v[c.id]?.[p.id]),0),0);
 $('#stats').innerHTML=`<div><b>${fm(last?.s)||0}</b><span>${last?last.l+' 합계(최근 입력)':'입력 없음'}</span></div>${tab=='sale'?`<div><b>${fm(sum)||0}</b><span>${year}년 판매 합계</span></div>`:''}<div><b>${S.chars.length}</b><span>캐릭터 수</span></div>`}
 const mv=(i,j)=>{if(j<0||j>=S.chars.length||i==j)return;const[c]=S.chars.splice(i,1);S.chars.splice(j,0,c);save();render()};
-document.addEventListener('input',e=>{const d=e.target.dataset;if(e.target.classList.contains('cell')&&d.c){const v=parseInt(e.target.value.replace(/[^\d-]/g,''))||0;(T().v[d.c]??={})[d.p]=v;if(!v)delete T().v[d.c][d.p];save();tot()}});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(e.target.classList.contains('cell')&&d.c){const v=parseInt(e.target.value.replace(/[^\d-]/g,''))||0;(T().v[d.c]??={})[d.p]=v;if(!v)delete T().v[d.c][d.p];save();tot();fit()}});
 document.addEventListener('focusin',e=>{if(e.target.classList.contains('cell')&&e.target.dataset.c)e.target.value=e.target.value.replace(/,/g,'')});
 document.addEventListener('focusout',e=>{const el=e.target,d=el.dataset;if(el.classList.contains('cell')&&d.c)el.value=fm(T().v[d.c]?.[d.p]);
 if(d.n){const c=S.chars.find(c=>c.id==d.n),v=el.value.trim();if(v)c.name=v;else el.value=c.name;save()}
-if(d.pl){T().periods.find(p=>p.id==d.pl).l=el.value;save()}if(d.pm){T().periods.find(p=>p.id==d.pm).m=el.value;save()}});
+if(d.pl){T().periods.find(p=>p.id==d.pl).l=el.value;save()}if(d.pm){T().periods.find(p=>p.id==d.pm).m=el.value;save()}if(d.n||d.pl)fit()});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,a=d.a;if(!fh&&!d.tab&&!d.y&&!['fo','fn','fr'].includes(a))return;
 if(d.tab){tab=d.tab;return render()}if(d.y){year=+d.y;return render()}
 if(a!='del'&&arm){arm=null}
-if(a=='del'){if(arm==d.c){S.chars=S.chars.filter(c=>c.id!=d.c);for(const k in S.tabs)delete S.tabs[k].v[d.c];arm=null;save()}else{arm=d.c;setTimeout(()=>{if(arm==d.c){arm=null;render()}},3000)}render()}
+if(a=='del'){if(arm==d.c){snap('캐릭터 삭제 직전','risk');S.chars=S.chars.filter(c=>c.id!=d.c);for(const k in S.tabs)delete S.tabs[k].v[d.c];arm=null;save()}else{arm=d.c;setTimeout(()=>{if(arm==d.c){arm=null;render()}},3000)}render()}
+else if(a=='bk')openBk();
 else if(a=='grp'){const c=S.chars.find(c=>c.id==d.c);c.g=!c.g;save();render()}
-else if(a=='clrp'){const t=T(),p=t.periods.find(x=>x.id==d.p);ask(p.y+'년 '+p.l+' '+(tab=='hold'?'보유현황':'판매현황')+'에 입력된 모든 캐릭터의 값을 지울까요?\n지운 값은 되돌릴 수 없습니다.','지우기').then(ok=>{if(!ok||!fh)return;for(const c in t.v)delete t.v[c][p.id];save();render()})}
+else if(a=='clrp'){const t=T(),p=t.periods.find(x=>x.id==d.p);ask(p.y+'년 '+p.l+' '+(tab=='hold'?'보유현황':'판매현황')+'에 입력된 모든 캐릭터의 값을 지울까요?\n지운 값은 되돌릴 수 없습니다.','지우기').then(ok=>{if(!ok||!fh)return;snap(p.y+'년 '+p.l+' 초기화 직전','risk');for(const c in t.v)delete t.v[c][p.id];save();render()})}
 else if(a=='addc'){const v=$('#newc').value.trim();if(!v)return $('#newc').focus();const id='c'+Date.now();S.chars.push({id,name:v});for(const k in S.tabs)S.tabs[k].v[id]={};$('#newc').value='';save();render()}
 else if(a=='addp'){const ps=T().periods.filter(p=>p.y==year),id='p'+Date.now();T().periods.push({id,y:year,l:(ps.length+1)+'월',m:''});save();render()}
 else if(a=='addy'){const y=+$('#newy').value;if(!y)return $('#newy').focus();for(const k in S.tabs)S.tabs[k].periods.push({id:'p'+Date.now()+k,y,l:'1월',m:''});year=y;$('#newy').value='';save();render()}
@@ -109,6 +123,6 @@ document.addEventListener('dragstart',e=>{if(fh&&e.target.dataset.i!=null&&e.tar
 document.addEventListener('dragover',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));r.classList.add('over')}});
 document.addEventListener('drop',e=>{const r=e.target.closest('tr[data-i]');if(drag!=null&&r){e.preventDefault();const f=drag;drag=null;mv(f,+r.dataset.i)}});
 document.addEventListener('dragend',()=>{drag=null;document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'))});
-render();
+lastJ=cj();render();document.fonts&&document.fonts.ready.then(fit);
 (async()=>{const h=await hget();if(!h)return;try{if(await h.queryPermission({mode:'readwrite'})=='granted')useFile(h);else{fh0=h;$('#fr').hidden=false;st('연결했던 파일: '+h.name+' — [다시 연결]을 눌러 권한을 허용해 주세요',1)}}catch(e){}})();
 </script></body></html>
