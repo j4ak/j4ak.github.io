@@ -77,7 +77,7 @@ try{const t=localStorage.getItem("phoneDraft");S=t?JSON.parse(t):null}catch(e){}
 if(!S)S=JSON.parse(JSON.stringify(INIT));
 let nid=Math.max(0,...S.rows.map(r=>r.id))+1;
 function persist(){dirty=true;try{localStorage.setItem("phoneDraft",JSON.stringify(S))}catch(e){}status();clearTimeout(timer);timer=setTimeout(autoSave,500)}
-async function autoSave(){if(!handle)return;try{if(await handle.queryPermission({mode:"readwrite"})!="granted"){perm=false;status();return}perm=true;const w=await handle.createWritable();await w.write(JSON.stringify(S,null,1));await w.close();dirty=false;status()}catch(e){status("자동 저장 실패: "+e.message)}}
+async function autoSave(){if(!handle)return;try{if(await handle.queryPermission({mode:"readwrite"})!="granted"){perm=false;status();return}perm=true;const w=await handle.createWritable();await w.write(payload());await w.close();dirty=false;status()}catch(e){status("자동 저장 실패: "+e.message)}}
 const idb=(m,v)=>new Promise(res=>{try{const q=indexedDB.open("phoneDB",1);q.onupgradeneeded=()=>q.result.createObjectStore("h");q.onerror=()=>res(null);q.onsuccess=()=>{const st=q.result.transaction("h",m=="set"?"readwrite":"readonly").objectStore("h"),r=m=="set"?st.put(v,"fh"):st.get("fh");r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}}catch(e){res(null)}});
 function status(msg){const f=$("fs");let t,c="";
  if(msg){t=msg;c="dirty"}else if(!handle){t=dirty?"저장 안 된 변경 있음 · '저장'으로 파일을 연결하세요":"저장됨"+(fname?" · "+fname:"");c=dirty?"dirty":""}
@@ -136,11 +136,24 @@ $("add").onclick=()=>{const d=today,iso=`${d.getFullYear()}-${String(d.getMonth(
  S.rows.unshift({id:nid++,num:"",carrier:"",net:"",device:"",plan:"",fee:"",open:iso,pay:"",planKeep:"",lineKeep:"",memo:"",call:"",sms:"",data:"",closed:false,main:false,life:false,isNew:true});
  if(tab=="closed"){tab="active";[...$("tabs").children].forEach(b=>b.classList.toggle("on",b.dataset.t=="active"))}persist();render()};
 /* 파일 저장/열기 */
+const ID="mobilemanager-data-v1";
+const payload=()=>JSON.stringify({app:ID,lists:S.lists,rows:S.rows,colOrder:S.colOrder},null,1);
 const FT={types:[{description:"회선 데이터",accept:{"application/json":[".json"]}}]};
-function load(txt,name){const d=JSON.parse(txt);if(!d.rows||!d.lists)throw 0;S=d;nid=Math.max(0,...S.rows.map(r=>r.id))+1;fname=name||"";dirty=false;try{localStorage.setItem("phoneDraft",JSON.stringify(S))}catch(e){}status();render()}
-$("open").onclick=async()=>{try{if(window.showOpenFilePicker){const[h]=await showOpenFilePicker(FT);handle=h;perm=true;idb("set",h);const f=await h.getFile();load(await f.text(),f.name)}else $("fi").click()}catch(e){if(e.name!="AbortError")alert("파일을 열 수 없습니다. 이 프로그램에서 저장한 .json 파일인지 확인하세요.")}};
-$("fi").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{load(await f.text(),f.name)}catch(x){alert("올바른 데이터 파일이 아닙니다.")}e.target.value=""};
-$("save").onclick=async()=>{const txt=JSON.stringify(S,null,1);try{
+function load(txt,name){const d=JSON.parse(txt);if(!d.rows||!d.lists)throw 0;S={lists:d.lists,rows:d.rows,colOrder:d.colOrder};nid=Math.max(0,...S.rows.map(r=>r.id))+1;fname=name||"";dirty=false;try{localStorage.setItem("phoneDraft",JSON.stringify(S))}catch(e){}status();render()}
+async function checkFile(txt,name){
+ if(!txt.trim())return confirm(`"${name}" 파일이 비어 있습니다.\n\n이 파일을 데이터 파일로 연결하고, 현재 화면의 데이터를 저장할까요?`)?{empty:true}:null;
+ let d;try{d=JSON.parse(txt)}catch(e){alert(`"${name}" 파일은 올바른 JSON 형식이 아니라서 읽을 수 없습니다.`);return null}
+ if(!d||!Array.isArray(d.rows)||!d.lists||typeof d.lists!="object"){alert(`"${name}" 파일은 이 문서의 데이터 형식이 아니라서 읽을 수 없습니다.`);return null}
+ if(d.app!==ID){if(!confirm(`"${name}" 파일에는 이 문서의 전용 식별코드가 없습니다.\n\n기존에 사용하던 데이터 파일이라면 연결할 수 있습니다. 연결하면 이 파일에 식별코드가 바로 저장됩니다.\n\n이 파일을 연결할까요?`))return null;return{data:d,stamp:true}}
+ return{data:d}}
+$("open").onclick=async()=>{try{if(window.showOpenFilePicker){
+  const[h]=await showOpenFilePicker({...FT,mode:"readwrite"});const f=await h.getFile(),txt=await f.text(),r=await checkFile(txt,f.name);if(!r)return;
+  handle=h;fname=f.name;perm=false;idb("set",h);
+  try{perm=(await h.requestPermission({mode:"readwrite"}))=="granted"}catch(e){}
+  if(r.empty){dirty=true;persist()}else{load(txt,f.name);if(r.stamp){dirty=true;status();autoSave()}}
+  status()}else $("fi").click()}catch(e){if(e.name!="AbortError")alert("파일을 열 수 없습니다: "+e.message)}};
+$("fi").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const txt=await f.text();if(!txt.trim()){alert("빈 파일입니다.");return}const r=await checkFile(txt,f.name);if(r&&r.data)load(txt,f.name)};
+$("save").onclick=async()=>{const txt=payload();try{
  if(window.showSaveFilePicker){if(!handle){handle=await showSaveFilePicker({...FT,suggestedName:"휴대폰회선.json"});idb("set",handle)}if(await handle.requestPermission({mode:"readwrite"})!="granted")return;perm=true;const w=await handle.createWritable();await w.write(txt);await w.close();fname=handle.name}
  else{dl(txt,"휴대폰회선.json","application/json");fname="휴대폰회선.json"}
  dirty=false;status()}catch(e){if(e.name!="AbortError")alert("저장하지 못했습니다: "+e.message)}};
