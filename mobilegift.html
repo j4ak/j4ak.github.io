@@ -58,8 +58,9 @@ input{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:6px;
 table.sum td,table.sum th{padding:6px 10px}table.sum td.l{text-align:left}
 table.sum tfoot td{font-weight:700;background:var(--empty)}
 </style></head><body><div class="w">
-<div class="top"><h1>📱 휴대폰 사은품 관리</h1><div class="acts" style="align-items:center"><span id="st" class="hint"></span><button class="sb" id="bLink" title="JSON 파일을 한 번 연결하면 이후 변경이 자동으로 파일에 저장됩니다">🔗 JSON 파일 연결</button><button class="sb" id="bSave" title="JSON 파일 내려받기(수동 백업)">💾 내려받기</button><button class="sb" id="bLoad" title="JSON 파일에서 복원">📂 불러오기</button><input type="file" id="fIn" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><h1>📱 휴대폰 사은품 관리</h1><div class="acts" style="align-items:center"><span id="st" class="hint"></span><button class="sb" id="bLink" title="JSON 파일을 한 번 연결하면 이후 변경이 자동으로 파일에 저장됩니다">🔗 JSON 파일 연결</button><button class="sb" id="bBk" title="자동 백업 폴더 · 이전 상태로 되돌리기">🗂 백업</button><button class="sb" id="bSave" title="JSON 파일 내려받기(수동 백업)">💾 내려받기</button><button class="sb" id="bLoad" title="JSON 파일에서 복원">📂 불러오기</button><input type="file" id="fIn" accept=".json,application/json" style="display:none"></div></div>
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:420px;width:100%;margin:0"><h2 id="mt" style="margin:0 0 8px;font-size:17px"></h2><p id="mb" style="margin:0 0 14px"></p><div class="acts" id="mbtn"></div></div></div>
+<div id="bkm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:520px;width:100%;margin:0;max-height:90vh;overflow:auto" id="bkc"></div></div>
 <div id="warn" class="warn" style="display:none"></div>
 <div id="msg" class="card hint" style="display:none"></div>
 <div class="tot" id="tot"></div>
@@ -90,7 +91,7 @@ function seed(){
   gifts:[{t:'네이버페이',a:30000,n:6,s:'2026-10',d:'매월 15일경',p:[0]},{t:'상품권',a:10000,n:6,s:'2026-10',d:'매월 말일',p:[]}]}]}
 var S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
 if(!S||!S.length)S=seed();
-var TS=0,fh=null,fhPend=null,timer=null,fhFail=false,chk=true,pendFn=null,skipLink=false,replaced=false;try{TS=+localStorage.getItem(KEY+'_ts')||0}catch(e){}
+var TS=0,fh=null,fhPend=null,timer=null,fhFail=false,chk=true,pendFn=null,skipLink=false,replaced=false,bk=null,bkPend=null,bkFail=false,bt=null,lastJ=JSON.stringify(S);try{TS=+localStorage.getItem(KEY+'_ts')||0}catch(e){}
 var APP_ID='mobilegift-data';
 var NOID='<b style="color:#d33">⚠ 이 문서 전용 식별 코드가 없는 파일입니다.</b> 이전 버전에서 저장했거나 다른 용도의 파일일 수 있어요. 연결하면 이후 이 파일에 자동 저장되며 식별 코드가 추가됩니다.<br>';
 var FT=[{description:'JSON',accept:{'application/json':['.json']}}];
@@ -105,19 +106,38 @@ function updWarn(){
  w.className=c;w.style.display='';
  w.innerHTML='<span>'+m+'</span><button class="pri" id="wBtn">'+b+'</button>';
  document.getElementById('wBtn').onclick=function(){document.getElementById('bLink').click()}}
-function save(){TS=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(KEY+'_ts',TS)}catch(e){}push()}
+function save(){snapBefore();TS=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(KEY+'_ts',TS)}catch(e){}lastJ=JSON.stringify(S);push()}
 function push(){
+ if(bk){clearTimeout(bt);bt=setTimeout(writeBackup,2000)}
  if(fh){clearTimeout(timer);setSt('저장 중…');timer=setTimeout(writeFile,500)}
  else setSt(fhPend?'🔗 '+fhPend.name+' — 다시 연결 필요':'💾 이 브라우저에만 저장됨')}
 async function writeFile(){
  try{var w=await fh.createWritable();await w.write(JSON.stringify({app:APP_ID,version:1,ts:TS,savedAt:new Date(TS).toISOString(),lines:S},null,2));await w.close();fhFail=false;setSt('✅ '+fh.name+' 자동 저장됨')}
  catch(e){fhFail=true;setSt('⚠ 파일 저장 실패 — 🔗로 다시 연결하세요')}}
-function applyData(a,ts){replaced=true;S=a;TS=ts||Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(KEY+'_ts',TS)}catch(e){}resetForm();render()}
+function applyData(a,ts){var nj=JSON.stringify(a);if(nj!==lastJ)addSnap('pre-'+Date.now(),lastJ,'교체 전');lastJ=nj;replaced=true;S=a;TS=ts||Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(KEY+'_ts',TS)}catch(e){}resetForm();render()}
+var SK='giftmgr_snaps';
+function dayKey(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function snaps(){try{return JSON.parse(localStorage.getItem(SK))||[]}catch(e){return[]}}
+function putSnaps(a){try{localStorage.setItem(SK,JSON.stringify(a))}catch(e){try{localStorage.setItem(SK,JSON.stringify(a.slice(-5)))}catch(e2){}}}
+function addSnap(k,json,label){var a=snaps();a.push({k:k,ts:Date.now(),label:label,json:json});putSnaps(a.slice(-30))}
+function snapBefore(){var k=dayKey();if(!snaps().some(function(x){return x.k===k}))addSnap(k,lastJ,'오늘 첫 변경 직전')}
+var BKRE=/^mobilegift-\d{4}-\d{2}-\d{2}\.json$/,BKKEEP=14;
+async function writeBackup(){
+ if(!bk)return;
+ try{
+  var fh2=await bk.getFileHandle('mobilegift-'+dayKey()+'.json',{create:true}),w=await fh2.createWritable();
+  await w.write(JSON.stringify({app:APP_ID,version:1,ts:TS,savedAt:new Date().toISOString(),lines:S},null,2));await w.close();
+  var names=[];for await(var ent of bk.entries()){if(ent[1].kind==='file'&&BKRE.test(ent[0]))names.push(ent[0])}
+  names.sort();while(names.length>BKKEEP){await bk.removeEntry(names.shift())}
+  bkFail=false;try{localStorage.setItem(KEY+'_bk',Date.now())}catch(e){}
+ }catch(e){bkFail=true}
+ updBk()}
+function updBk(){var b=document.getElementById('bBk');if(b)b.textContent='🗂 백업'+((bkPend||bkFail)?' ⚠':'')}
 function parseData(t){try{var d=JSON.parse(t),a=Array.isArray(d)?d:d.lines;if(!Array.isArray(a)||!a.every(function(L){return L&&L.num&&Array.isArray(L.gifts)}))return null;return{a:a,ts:d.ts||0,id:!Array.isArray(d)&&d.app===APP_ID}}catch(e){return null}}
 function idb(){return new Promise(function(res,rej){var r=indexedDB.open('giftmgr_fh',1);r.onupgradeneeded=function(){r.result.createObjectStore('h')};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
-async function idbPut(v){try{var d=await idb();d.transaction('h','readwrite').objectStore('h').put(v,'fh')}catch(e){}}
-async function idbDel(){try{var d=await idb();d.transaction('h','readwrite').objectStore('h').delete('fh')}catch(e){}}
-function idbGet(){return idb().then(function(d){return new Promise(function(res){var q=d.transaction('h').objectStore('h').get('fh');q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}})}).catch(function(){return null})}
+async function idbPut(v,k){try{var d=await idb();d.transaction('h','readwrite').objectStore('h').put(v,k||'fh')}catch(e){}}
+async function idbDel(k){try{var d=await idb();d.transaction('h','readwrite').objectStore('h').delete(k||'fh')}catch(e){}}
+function idbGet(k){return idb().then(function(d){return new Promise(function(res){var q=d.transaction('h').objectStore('h').get(k||'fh');q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}})}).catch(function(){return null})}
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function won(n){return n.toLocaleString('ko-KR')+'원'}
@@ -177,9 +197,9 @@ document.addEventListener('click',function(e){
  var b;
  if(b=t.closest('[data-view]')){view=b.dataset.view;render();return}
  if(b=t.closest('[data-edit]')){startEdit(+b.dataset.edit);return}
- if(b=t.closest('[data-close]')){var i2=+b.dataset.close;arm(b,'정말 해지?',function(){guard(function(){var L=S[i2];L.closed=today();if(!L.end)L.end=L.closed;save();render()})});return}
+ if(b=t.closest('[data-close]')){var i2=+b.dataset.close;arm(b,'정말 해지?',function(){guard(function(){addSnap('pre-'+Date.now(),lastJ,'해지 전');var L=S[i2];L.closed=today();if(!L.end)L.end=L.closed;save();render()})});return}
  if(b=t.closest('[data-restore]')){var i3=+b.dataset.restore;guard(function(){delete S[i3].closed;save();render()});return}
- if(b=t.closest('[data-purge]')){var i4=+b.dataset.purge;arm(b,'정말 영구 삭제?',function(){guard(function(){S.splice(i4,1);save();render()})})}
+ if(b=t.closest('[data-purge]')){var i4=+b.dataset.purge;arm(b,'정말 영구 삭제?',function(){guard(function(){addSnap('pre-'+Date.now(),lastJ,'영구 삭제 전');S.splice(i4,1);save();render()})})}
 });
 function addGiftRow(g){
  var n=new Date(),ym=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2);
@@ -250,9 +270,40 @@ $('fIn').onchange=function(){
   if(!p){msg('올바른 사은품 관리 JSON 파일이 아닙니다.');return}
   pend=p.a;
   msg((p.id?'':'<b style="color:#d33">⚠ 이 문서 전용 식별 코드가 없는 파일입니다.</b> 이전 버전이거나 다른 용도의 파일일 수 있어요.<br>')+'<b>'+esc(f.name)+'</b>: 회선 '+p.a.length+'개를 찾았습니다. 현재 데이터를 이 파일로 <b>덮어씁니다.</b> '+(p.id?'':'그래도 진행할까요? ')+'<button class="pri" id="ok">덮어쓰기</button> <button id="no">취소</button>');
-  $('ok').onclick=function(){S=pend;pend=null;save();resetForm();render();msg('불러오기를 완료했습니다.')};
+  $('ok').onclick=function(){addSnap('pre-'+Date.now(),lastJ,'불러오기 전');S=pend;pend=null;save();resetForm();render();msg('불러오기를 완료했습니다.')};
   $('no').onclick=function(){pend=null;msg('')}};
  r.readAsText(f)};
+function fmt(ts){var d=new Date(ts);return d.getFullYear()+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+function showBk(){
+ var sup=!!window.showDirectoryPicker,last=+localStorage.getItem(KEY+'_bk')||0,st,btn='';
+ if(!sup)st='이 브라우저/화면에서는 폴더 연결을 지원하지 않습니다 (크롬·엣지 PC, 단독 HTML 파일에서 가능).';
+ else if(bkPend){st='⚠ 연결 대기 중 — <b>'+esc(bkPend.name)+'</b> 폴더 접근을 다시 허용해 주세요.';btn='<button class="pri" id="bk1">다시 연결</button> <button id="bk2">다른 폴더로 변경</button> <button class="dng" id="bk3">연결 해제</button>'}
+ else if(bk){st=(bkFail?'⚠ 마지막 백업에 실패했습니다. ':'✅ ')+'<b>'+esc(bk.name)+'</b> 폴더 · 마지막 백업 '+(last?fmt(last):'-');btn='<button id="bk2">폴더 변경</button> <button class="dng" id="bk3">연결 해제</button>'}
+ else{st='연결 안 됨 — 폴더를 한 번 연결하면 변경할 때마다 날짜별 파일(<code>mobilegift-날짜.json</code>)이 자동으로 만들어지고, 최근 '+BKKEEP+'개만 남깁니다.';btn=sup?'<button class="pri" id="bk2">백업 폴더 연결</button>':''}
+ var a=snaps().slice().reverse(),rows=a.map(function(x,i){var n='?';try{n=JSON.parse(x.json).length}catch(e){}
+  return '<tr><td style="text-align:left">'+fmt(x.ts)+'<br><span class="hint">'+esc(x.label||'')+'</span></td><td>회선 '+n+'개</td><td><button class="sb" data-rs="'+esc(x.k)+'|'+x.ts+'">복원</button></td></tr>'}).join('');
+ $('bkc').innerHTML='<h2 style="margin:0 0 10px;font-size:17px">🗂 백업 / 되돌리기</h2><p style="margin:0 0 4px"><b>백업 폴더 (자동)</b></p><p class="hint" style="margin:0 0 8px">'+st+'</p><div class="acts" style="margin-bottom:6px">'+btn+'</div><p class="hint" style="margin:0 0 14px">OneDrive·구글 드라이브·Dropbox 같은 동기화 폴더를 고르면 컴퓨터 밖에도 사본이 생깁니다.</p>'
+  +'<p style="margin:0 0 4px"><b>자동 스냅샷 (이 브라우저 안, 최근 '+a.length+'개)</b></p><p class="hint" style="margin:0 0 8px">매일 첫 변경 직전 상태와, 해지·영구 삭제·불러오기 직전 상태가 저장됩니다. 브라우저 데이터를 지우면 함께 사라지니 실수 복구용으로 쓰세요.</p>'
+  +(rows?'<div class="sc"><table class="sum"><tbody>'+rows+'</tbody></table></div>':'<p class="hint">아직 스냅샷이 없습니다.</p>')
+  +'<div class="acts" style="margin-top:12px"><button id="bkx">닫기</button></div>';
+ $('bkm').style.display='flex';
+ $('bkx').onclick=function(){$('bkm').style.display='none'};
+ if($('bk1'))$('bk1').onclick=async function(){try{if((await bkPend.requestPermission({mode:'readwrite'}))==='granted'){bk=bkPend;bkPend=null;await writeBackup();showBk()}}catch(e){}};
+ if($('bk2'))$('bk2').onclick=async function(){try{var h=await window.showDirectoryPicker({mode:'readwrite'});bk=h;bkPend=null;bkFail=false;idbPut(h,'bk');await writeBackup();showBk()}catch(e){}};
+ if($('bk3'))$('bk3').onclick=function(){bk=null;bkPend=null;bkFail=false;idbDel('bk');updBk();showBk()};
+ document.querySelectorAll('[data-rs]').forEach(function(b){b.onclick=function(){
+  var key=b.dataset.rs.split('|'),ent=snaps().filter(function(x){return x.k===key[0]&&String(x.ts)===key[1]})[0];if(!ent)return;
+  arm(b,'정말 복원?',function(){var arr;try{arr=JSON.parse(ent.json)}catch(e){return}applyData(arr,0);save();$('bkm').style.display='none';msg('복원했습니다 ('+fmt(ent.ts)+' 시점). 복원 직전 상태도 스냅샷으로 남아 있어요.')})}})}
+$('bBk').onclick=showBk;
+(async function(){
+ try{
+  if(!window.showDirectoryPicker)return;
+  var h=await idbGet('bk');if(!h)return;
+  await new Promise(function(r){var t=setInterval(function(){if(!chk){clearInterval(t);r()}},100)});
+  if((await h.queryPermission({mode:'readwrite'}))==='granted'){bk=h;await writeBackup()}
+  else{bkPend=h;updBk()}
+ }catch(e){}
+})();
 render();setSt('💾 이 브라우저에만 저장됨');
 function linkErr(e){if(e&&e.name==='AbortError'){pendFn=null;return}var f=pendFn;pendFn=null;skipLink=true;if(f)f();msg('이 화면에서는 브라우저 보안 제한으로 파일 연결을 쓸 수 없습니다. 데이터는 이 브라우저에 자동 저장되고 있으며 "내려받기"로 백업할 수 있어요. 크롬/엣지 PC에서 이 페이지를 HTML 파일로 저장해 열면 파일 연결이 가능합니다.')}
 async function attach(h,write){fh=h;fhPend=null;fhFail=false;idbPut(h);$('bLink').textContent='🔗 '+h.name;msg('');if(write)await writeFile();else setSt('✅ '+h.name+' 자동 저장됨');
