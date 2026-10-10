@@ -15,6 +15,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 "Pretendard","Noto Sans KR","Malgun Gothic",sans-serif}
 .w{max-width:1100px;margin:0 auto;padding:16px}
 h1{font-size:20px;margin:0}.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 12px}.sb{padding:3px 9px;font-size:12.5px}
+.hlp-b h3{margin:0 0 6px;font-size:15px}.hlp-b details{border-top:1px solid var(--bd);padding:9px 0}.hlp-b summary{cursor:pointer;font-weight:700;font-size:14.5px}.hlp-b ul{margin:6px 0 4px 18px;padding:0}.hlp-b li{margin:4px 0}.hlp-b p{margin:6px 0}.hlp-b .k{background:var(--empty);border:1px solid var(--bd);border-radius:5px;padding:0 6px;font-size:12.5px;white-space:nowrap}.hlp-b table{margin:6px 0}.hlp-b td{text-align:left;white-space:normal}
 .warn{--wbg:#fff1dc;--wbd:#f0a03c;--wtx:#7a3d00;background:var(--wbg);border:2px solid var(--wbd);color:var(--wtx);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .warn.err{--wbg:#fde8e8;--wbd:#e05555;--wtx:#7a1010}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{--wbg:#3a2a12;--wbd:#c98a2e;--wtx:#ffd9a0}:root:not([data-theme="light"]) .warn.err{--wbg:#3d1a1a;--wbd:#c85050;--wtx:#ffc2c2}}
@@ -58,9 +59,129 @@ input{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:6px;
 table.sum td,table.sum th{padding:6px 10px}table.sum td.l{text-align:left}
 table.sum tfoot td{font-weight:700;background:var(--empty)}
 </style></head><body><div class="w">
-<div class="top"><h1>📱 휴대폰 사은품 관리</h1><div class="acts" style="align-items:center"><span id="st" class="hint"></span><button class="sb" id="bLink" title="JSON 파일을 한 번 연결하면 이후 변경이 자동으로 파일에 저장됩니다">🔗 JSON 파일 연결</button><button class="sb" id="bBk" title="자동 백업 폴더 · 이전 상태로 되돌리기">🗂 백업</button><button class="sb" id="bSave" title="JSON 파일 내려받기(수동 백업)">💾 내려받기</button><button class="sb" id="bLoad" title="JSON 파일에서 복원">📂 불러오기</button><input type="file" id="fIn" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><h1>📱 휴대폰 사은품 관리</h1><div class="acts" style="align-items:center"><span id="st" class="hint"></span><button class="sb" id="bLink" title="JSON 파일을 한 번 연결하면 이후 변경이 자동으로 파일에 저장됩니다">🔗 JSON 파일 연결</button><button class="sb" id="bBk" title="자동 백업 폴더 · 이전 상태로 되돌리기">🗂 백업</button><button class="sb" id="bSave" title="JSON 파일 내려받기(수동 백업)">💾 내려받기</button><button class="sb" id="bLoad" title="JSON 파일에서 복원">📂 불러오기</button><button class="sb" id="bHelp" title="사용 설명서">❓ 도움말</button><input type="file" id="fIn" accept=".json,application/json" style="display:none"></div></div>
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:420px;width:100%;margin:0"><h2 id="mt" style="margin:0 0 8px;font-size:17px"></h2><p id="mb" style="margin:0 0 14px"></p><div class="acts" id="mbtn"></div></div></div>
 <div id="bkm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:520px;width:100%;margin:0;max-height:90vh;overflow:auto" id="bkc"></div></div>
+<div id="hlp" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;align-items:center;justify-content:center;padding:16px"><div class="card hlp-b" style="max-width:720px;width:100%;margin:0;max-height:90vh;overflow:auto">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><h2 style="margin:0;font-size:18px">❓ 사용 설명서</h2><button id="hx">닫기</button></div>
+<p class="hint">제목을 누르면 항목이 펼쳐집니다. 이 창은 바깥 영역을 누르거나 Esc 키로도 닫을 수 있어요.</p>
+
+<details open><summary>1. 화면 구성</summary>
+<ul>
+<li><b>제목 줄</b>: 왼쪽에 문서 제목, 오른쪽에 저장 상태 문구와 버튼이 있습니다. 버튼은 왼쪽부터 <span class="k">🔗 JSON 파일 연결</span> <span class="k">🗂 백업</span> <span class="k">💾 내려받기</span> <span class="k">📂 불러오기</span> <span class="k">❓ 도움말</span> 입니다.</li>
+<li><b>경고 배너</b>: JSON 파일이 연결되지 않았거나 연결이 끊어졌을 때 화면 맨 위에 주황색(저장 실패는 빨간색)으로 나타납니다.</li>
+<li><b>요약 카드</b>: 회선 수, 총 사은품, 지급 완료, 남은 금액, 현재까지 요금, 총 예상요금을 한눈에 보여 줍니다. 아래 탭에 따라 운영 중 회선 또는 해지 회선만 집계됩니다.</li>
+<li><b>탭</b>: <span class="k">운영 중 회선</span>과 <span class="k">해지 회선</span>을 전환합니다. 괄호 안 숫자는 회선 수입니다.</li>
+<li><b>회선 카드</b>: 회선마다 하나씩 있고, 회선 정보와 지급현황 표가 들어 있습니다.</li>
+<li><b>회선 추가 영역</b>: 맨 아래 <span class="k">＋ 회선 추가</span>를 누르면 입력 폼이 펼쳐집니다. (해지 회선 탭에서는 숨겨집니다.)</li>
+</ul></details>
+
+<details><summary>2. 회선 카드 읽는 법</summary>
+<ul>
+<li><b>머리 줄</b>: 번호와 통신사, 오른쪽에 <span class="k">수정</span> <span class="k">해지</span> 버튼이 있습니다.</li>
+<li><b>회선 정보</b>: 기기, 요금제, 월요금, 개통일, 해지일, 프로모션(입력한 경우)이 한 줄로 표시됩니다.</li>
+<li><b>진행률 바</b>: 사은품 총액 중 지급 완료 금액의 비율입니다. 아래에 지급 완료 / 총액 / 남은 금액이 적힙니다.</li>
+<li><b>요금 줄</b>: 현재까지 요금, 총 예상요금, 남은 예상요금입니다. (계산 방식은 5번 항목)</li>
+<li><b>지급현황 표</b>: 행은 사은품, 열은 월입니다. 표의 월 범위는 그 회선의 사은품 중 가장 이른 첫 지급월부터 가장 늦은 마지막 지급월까지입니다.
+<ul>
+<li>글자만 있는 칸: 아직 지급되지 않음 (칸 안에 금액이 "3만", "5천" 식으로 표시됨)</li>
+<li><span class="k" style="background:var(--paid);color:var(--paidtx)">노란색 칸</span>: 지급 완료</li>
+<li>회색 칸: 그 사은품의 지급 대상 월이 아님</li>
+<li>맨 오른쪽 <b>합계</b> 열: 지급된 횟수 / 전체 횟수 (예: 3/7)</li>
+<li>왼쪽 항목 칸에는 사은품 종류, 금액, 지급시기 메모, 지급기간, 총액이 표시됩니다.</li>
+</ul></li>
+<li><b>칸 클릭</b>: 칸을 누르면 지급 완료(노란색)와 미지급이 번갈아 바뀝니다.</li>
+</ul></details>
+
+<details><summary>3. 회선 추가와 수정</summary>
+<p><b>추가</b>: 맨 아래 <span class="k">＋ 회선 추가</span>를 펼쳐 입력한 뒤 <span class="k">회선 등록</span>을 누릅니다.</p>
+<ul>
+<li><b>회선 정보</b>: 번호(필수), 통신사, 사용기기, 요금제명, 월요금(원), 개통일, 해지일, 프로모션코드. 번호 외에는 비워 둬도 되지만, 월요금과 개통일이 없으면 요금이 계산되지 않고, 해지일이 없으면 총 예상요금을 알 수 없습니다.</li>
+<li><b>사은품 줄</b>: 사은품 종류, 금액(원), 지급기간(개월), 최초지급월, 지급시기(자유 메모)를 입력합니다. 종류, 금액, 지급기간, 최초지급월을 모두 채운 줄만 등록되고, 한 줄 이상 필요합니다.</li>
+<li><span class="k">＋ 사은품 추가</span>로 줄을 늘리고, 줄마다 <span class="k">줄 삭제</span>로 뺄 수 있습니다.</li>
+<li>등록하면 지급기간과 최초지급월에 맞춰 지급현황 표가 자동으로 만들어집니다.</li>
+</ul>
+<p><b>수정</b>: 회선 카드의 <span class="k">수정</span>을 누르면 아래 폼에 기존 내용이 채워지고 화면이 그쪽으로 이동합니다. 고친 뒤 <span class="k">수정 저장</span>을 누르세요. 그만두려면 <span class="k">수정 취소</span>를 누릅니다.</p>
+<ul>
+<li>이미 체크한 지급 완료 표시는 유지됩니다.</li>
+<li>지급기간을 줄이면 범위를 벗어난 칸의 체크만 사라집니다.</li>
+<li>최초지급월을 바꾸면 체크는 "몇 번째 달인지" 기준으로 유지되어 같은 순서의 칸에 남습니다.</li>
+<li>해지 회선도 수정할 수 있습니다.</li>
+</ul></details>
+
+<details><summary>4. 해지, 복구, 영구 삭제</summary>
+<ul>
+<li><b>해지</b>: 카드의 <span class="k">해지</span>를 누르면 버튼이 <span class="k">정말 해지?</span>로 바뀌고, 3초 안에 한 번 더 누르면 해지 회선 탭으로 옮겨집니다. 해지일이 비어 있으면 오늘 날짜가 들어가고, 별도로 "해지 처리일"이 기록됩니다.</li>
+<li><b>해지 회선 탭</b>: 맨 위에 <b>해지 회선 합계 총괄 표</b>(회선별 총 사은품, 수령 완료, 미수령, 현재까지 요금, 총 예상요금, 남은 예상요금과 합계 행)가 나오고, 그 아래에 해지 회선 카드들이 이어집니다. 해지 회선의 사은품 합계는 운영 중 회선과 따로 집계됩니다.</li>
+<li><b>운영 중으로 복구</b>: 잘못 해지했을 때 누르면 운영 중 회선으로 돌아갑니다.</li>
+<li><b>영구 삭제</b>: 해지 회선에서만 보이며, 두 번 눌러야(<span class="k">정말 영구 삭제?</span>) 완전히 지워집니다. 지우기 전 상태는 스냅샷으로 남습니다. (7번 항목)</li>
+<li>해지 회선의 지급 칸도 눌러서 고칠 수 있습니다.</li>
+</ul></details>
+
+<details><summary>5. 요금 계산 방식</summary>
+<ul>
+<li>월요금을 <b>일수에 비례</b>해 계산합니다. 달마다 <i>월요금 × 그 달 사용 일수 ÷ 그 달 전체 일수</i>를 더하며, 개통한 달과 해지한 달만 일할로 계산되고 중간 달은 월요금 전액입니다.</li>
+<li>개통일과 해지일 당일은 사용일에 포함합니다.</li>
+<li><b>현재까지 요금</b>은 개통일부터 오늘까지(해지일이 지났으면 해지일까지) 쌓인 요금입니다.</li>
+<li><b>총 예상요금</b>은 개통일부터 해지일까지의 요금이고, <b>남은 예상요금</b>은 총 예상요금에서 현재까지 요금을 뺀 값입니다.</li>
+<li>해지일이 없는 회선은 "해지일 미정"으로 표시되고 총 예상·남은 예상요금 합계에서 빠집니다. 월요금이나 개통일이 없으면 요금이 계산되지 않습니다.</li>
+<li>통신사별 청구 방식에 따라 실제 청구액과 차이가 날 수 있는 추정치입니다.</li>
+</ul></details>
+
+<details><summary>6. 데이터 저장 (자동 저장과 JSON 파일 연결)</summary>
+<ul>
+<li><b>기본 저장</b>: 변경할 때마다 이 브라우저에 자동 저장됩니다. 브라우저 데이터를 지우면 사라집니다.</li>
+<li><b>JSON 파일 연결</b>: <span class="k">🔗 JSON 파일 연결</span>을 누르면 <span class="k">기존 파일 열기</span>와 <span class="k">새 파일 만들기</span>가 나옵니다. 한 번 연결하면 이후 변경이 그 파일에 자동 저장됩니다.
+<ul>
+<li>기존 파일 열기: 파일 내용으로 현재 화면 데이터를 <b>교체</b>하고 연결합니다. 확인 문구가 먼저 나옵니다. 비어 있는 파일이면 현재 데이터를 그 파일에 저장하고 연결할지 묻습니다.</li>
+<li>새 파일 만들기: 현재 화면 데이터를 새 파일에 저장하고 연결합니다. (기본 이름 phone-gift-data.json)</li>
+<li>같은 메뉴에서 <span class="k">연결 해제</span>도 할 수 있습니다.</li>
+</ul></li>
+<li><b>식별 코드</b>: 저장되는 파일에는 이 문서 전용 식별 코드(<code>mobilegift-data</code>)가 들어갑니다. 이 코드가 없는 파일(이전 버전에서 저장한 파일이나 다른 용도의 파일)을 열면 확인 문구가 나오며, 연결하면 코드가 추가됩니다. 구조가 맞지 않는 파일은 오류가 납니다.</li>
+<li><b>재연결</b>: 페이지를 다시 열면 브라우저가 파일 쓰기 권한을 다시 물을 수 있습니다. 이때는 <span class="k">다시 연결</span> 버튼을 눌러 허용하세요.</li>
+<li><b>파일 없이 변경하려 할 때</b>: 파일이 연결되지 않은 상태에서 지급 체크, 해지, 삭제, 등록/수정 저장을 하면 팝업이 뜹니다. <span class="k">기존 파일 열기</span> <span class="k">새 파일 만들기</span> <span class="k">연결 없이 계속</span>(이번 접속 동안 팝업 없이 브라우저에만 저장) <span class="k">취소</span> 중에서 고릅니다.</li>
+<li><b>💾 내려받기</b>: 현재 데이터를 JSON 파일로 내려받습니다(수동 백업용). 환경에 따라 파일이 아니라 입력창에 내용이 나오면 복사해서 .json 파일로 보관하세요.</li>
+<li><b>📂 불러오기</b>: JSON 파일을 골라 현재 데이터를 덮어씁니다. 확인 후 진행되며, 덮어쓰기 직전 상태는 스냅샷으로 남습니다.</li>
+</ul>
+<p><b>제목 옆 저장 상태 문구</b></p>
+<table><tbody>
+<tr><td>✅ 파일명 자동 저장됨</td><td>파일에 정상 저장됨</td></tr>
+<tr><td>저장 중…</td><td>파일에 쓰는 중</td></tr>
+<tr><td>💾 이 브라우저에만 저장됨</td><td>파일이 연결되지 않음</td></tr>
+<tr><td>🔗 파일명 — 다시 연결 필요</td><td>권한 재허용이 필요함</td></tr>
+<tr><td>⚠ 파일 저장 실패</td><td>파일이 이동·삭제되었거나 권한이 사라짐. 다시 연결하세요</td></tr>
+</tbody></table></details>
+
+<details><summary>7. 자동 백업과 되돌리기 (🗂 백업)</summary>
+<ul>
+<li><b>백업 폴더 (자동)</b>: <span class="k">🗂 백업</span> 창에서 <span class="k">백업 폴더 연결</span>로 폴더를 한 번 고르면, 변경할 때마다 그 폴더에 <code>mobilegift-날짜.json</code>이 만들어지거나 갱신됩니다. 같은 날은 같은 파일에 최신 상태가 덮어써지고, 날짜별 파일이 14개를 넘으면 가장 오래된 것부터 자동 삭제됩니다. 폴더 안의 다른 파일은 건드리지 않습니다.
+<ul>
+<li>OneDrive, 구글 드라이브, Dropbox 같은 동기화 폴더를 고르면 컴퓨터 밖에도 사본이 생깁니다.</li>
+<li>백업 파일은 일반 데이터 파일과 같은 형식이라 <span class="k">📂 불러오기</span>나 파일 연결로 바로 열 수 있습니다.</li>
+<li>폴더 권한이 풀리거나 백업이 실패하면 <span class="k">🗂 백업 ⚠</span>로 표시됩니다. 창을 열어 <span class="k">다시 연결</span>하세요.</li>
+</ul></li>
+<li><b>자동 스냅샷 (되돌리기)</b>: 같은 창 아래의 목록에서 <span class="k">복원</span>을 두 번 누르면(<span class="k">정말 복원?</span>) 그 시점으로 되돌아갑니다. 매일 첫 변경 직전 상태, 그리고 해지·영구 삭제·불러오기·파일 연결로 인한 교체 직전 상태가 저장되며 최근 30개까지 보관합니다. 복원 직전 상태도 스냅샷으로 남습니다.</li>
+<li>스냅샷은 브라우저 안에 저장되므로 브라우저 데이터를 지우면 사라집니다. 같은 날 첫 변경 이후의 일반 수정(예: 지급 칸을 잘못 누름)은 스냅샷으로 되돌릴 수 없으니 칸을 눌러 직접 고치세요.</li>
+</ul></details>
+
+<details><summary>8. 사용 환경과 개인정보</summary>
+<ul>
+<li>JSON 파일 연결과 백업 폴더는 <b>크롬·엣지 같은 PC 브라우저</b>에서만 됩니다. 사파리, 파이어폭스, 모바일에서는 지원되지 않습니다. 이 경우 브라우저 자동 저장, 💾 내려받기, 📂 불러오기만 쓸 수 있습니다.</li>
+<li>claude.ai 안에서 열린 화면 등 보안 제한이 있는 환경에서는 파일 연결이 막힐 수 있습니다. 막히면 안내 문구가 나오고, 이후에는 팝업 없이 브라우저에만 저장됩니다.</li>
+<li>이 페이지에는 검색엔진 색인을 막는 설정(noindex)이 들어 있지만, 주소를 아는 사람의 접근을 막는 보안 장치는 아닙니다.</li>
+<li>개인 데이터가 든 JSON 파일은 GitHub 같은 공개 저장소에 올리지 마세요. 페이지 파일(HTML)에는 예시 회선만 들어 있고, 실제 데이터는 내 컴퓨터의 JSON 파일과 브라우저에만 있습니다.</li>
+<li>JSON 파일의 이름은 파일 탐색기에서 바꿔도 내용에는 영향이 없습니다. 이름을 바꾼 뒤에는 <span class="k">🔗 JSON 파일 연결</span>에서 <span class="k">기존 파일 열기</span>로 다시 연결하세요.</li>
+</ul></details>
+
+<details><summary>9. 문제가 생겼을 때</summary>
+<ul>
+<li><b>주황색 경고 배너가 계속 떠요</b>: 파일이 연결되지 않았거나 연결 대기 중입니다. 배너의 버튼으로 연결하거나 다시 연결하세요. 파일 연결이 지원되지 않는 환경이라면 배너가 계속 보이는 것이 정상입니다.</li>
+<li><b>빨간색 배너 (저장 실패)</b>: 연결한 파일이 이동·삭제되었거나 권한이 취소된 경우입니다. <span class="k">파일 다시 연결</span>을 누르세요. 그동안의 변경은 브라우저에는 저장되어 있습니다.</li>
+<li><b>데이터가 사라진 것 같아요</b>: <span class="k">🗂 백업</span> 창의 스냅샷 목록과 백업 폴더의 날짜별 파일을 확인하세요.</li>
+<li><b>수정한 기능이 안 보여요</b>: 예전 버전이 캐시에 남아 있을 수 있습니다. 페이지 맨 아래의 버전 문구를 확인하고 Ctrl+F5로 강력 새로고침하세요.</li>
+<li><b>요금이 비어 있어요</b>: 월요금과 개통일을 입력해야 계산됩니다. 총 예상요금은 해지일도 필요합니다.</li>
+</ul></details>
+</div></div>
 <div id="warn" class="warn" style="display:none"></div>
 <div id="msg" class="card hint" style="display:none"></div>
 <div class="tot" id="tot"></div>
@@ -82,7 +203,7 @@ table.sum tfoot td{font-weight:700;background:var(--empty)}
 <p class="hint">수정 시 기존 지급 체크는 유지됩니다. 사은품의 지급기간·최초지급월을 입력하면 회선별 지급현황 표가 자동으로 만들어집니다.</p>
 <button class="pri" id="save">회선 등록</button> <button id="cancel" style="display:none">수정 취소</button>
 </details>
-<p class="hint" style="text-align:center">버전 2026.10.09-b · 데이터 식별 코드 mobilegift-data</p>
+<p class="hint" style="text-align:center">버전 2026.10.09-c · 데이터 식별 코드 mobilegift-data</p>
 </div>
 <script>
 var KEY='giftmgr_v1';
@@ -295,6 +416,10 @@ function showBk(){
   var key=b.dataset.rs.split('|'),ent=snaps().filter(function(x){return x.k===key[0]&&String(x.ts)===key[1]})[0];if(!ent)return;
   arm(b,'정말 복원?',function(){var arr;try{arr=JSON.parse(ent.json)}catch(e){return}applyData(arr,0);save();$('bkm').style.display='none';msg('복원했습니다 ('+fmt(ent.ts)+' 시점). 복원 직전 상태도 스냅샷으로 남아 있어요.')})}})}
 $('bBk').onclick=showBk;
+$('bHelp').onclick=function(){$('hlp').style.display='flex'};
+$('hx').onclick=function(){$('hlp').style.display='none'};
+$('hlp').onclick=function(e){if(e.target===this)this.style.display='none'};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')$('hlp').style.display='none'});
 (async function(){
  try{
   if(!window.showDirectoryPicker)return;
