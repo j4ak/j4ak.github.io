@@ -36,6 +36,7 @@ button{font:inherit;cursor:pointer}
 .tools input[type=number]{border:1px solid var(--ln);background:var(--pn);color:var(--tx);border-radius:6px;padding:5px 6px;font:inherit;width:64px}
 .legend{display:flex;gap:12px;color:var(--mu);font-size:12px;margin-top:8px;flex-wrap:wrap}
 .legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--c)}
+.legend span.w::before{border:1px solid var(--mu)}
 .wrap{max-width:100%;overflow:auto;margin:8px 0 4px;max-height:calc(100vh - 220px);min-height:320px}
 table{border-collapse:separate;border-spacing:0;margin:0 auto 0 16px;background:var(--pn);table-layout:fixed}
 th,td{border-right:1px solid var(--ln);border-bottom:1px solid var(--ln);text-align:center;padding:0;overflow:hidden}
@@ -46,7 +47,8 @@ th.nm{background:var(--hd);z-index:4;color:var(--hd-t)}
 td.nm{font-size:12px;height:26px;line-height:1.2}
 td.c{height:26px}
 td button.cell{width:100%;height:100%;min-height:26px;border:0;background:var(--na);padding:0;font-size:12px;display:block}
-td button.cell.T{background:var(--todo);color:var(--todo-t)}
+td button.cell.T{background:var(--pn);color:var(--tx)}
+td button.cell.T.ov{background:var(--todo);color:var(--todo-t)}
 td button.cell.P{background:repeating-linear-gradient(45deg,#f59f00,#f59f00 6px,#ffc247 6px,#ffc247 12px);color:#3a2500}
 td button.cell.P::after{content:"…";font-weight:700}
 td button.cell.D{background:var(--done);color:var(--done-t)}
@@ -69,6 +71,12 @@ button.cell:focus-visible,.tools button:focus-visible{outline:2px solid var(--ac
 .wi{width:50px;height:20px;border:1px solid #ffffff55;background:#ffffff22;color:var(--hd-t);border-radius:4px;font:inherit;font-size:11px;text-align:center;padding:0 2px}
 .rz{position:absolute;top:0;right:0;bottom:0;width:8px;cursor:col-resize;touch-action:none;background:rgba(255,255,255,.18)}
 .rz:hover,.rz:active{background:var(--ac)}
+.dl{font-size:10px;margin-top:3px;font-weight:400;opacity:.9}
+.dl.warn{color:#ffd8a8;opacity:1}
+.dl.hot{display:inline-block;background:#e8590c;color:#fff;border-radius:8px;padding:0 6px;font-weight:700;opacity:1}
+.dlr{display:flex;align-items:center;gap:2px;margin-top:3px}
+.di{flex:1;min-width:0;width:100%;height:20px;border:1px solid #ffffff55;background:#ffffff22;color:var(--hd-t);border-radius:4px;font:inherit;font-size:10px;padding:0 2px;color-scheme:dark}
+.dlr .hb{margin:0;flex:none}
 .hbs{display:flex;flex-wrap:wrap;justify-content:center}
 .rb{border:1px solid #ffffff77;background:#ffffff26;color:inherit;border-radius:3px;font-size:9px;line-height:12px;padding:0 3px;margin-left:3px;flex:none}
 .rb:hover{background:var(--ac);color:#2a2000;border-color:var(--ac)}
@@ -150,7 +158,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 </div>
 </header>
 <div class="wrap" id="wrap"><table id="tb"></table></div>
-<div class="lgb"><div class="legend"><span style="--c:var(--todo)">미완료</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--na-l)">해당 없음</span></div></div>
+<div class="lgb"><div class="legend"><span class="w" style="--c:var(--pn)">미완료</span><span style="--c:var(--todo)">마감일 도래 미완료</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--na-l)">해당 없음</span></div></div>
 <div class="note">편집 모드에서 이벤트 추가·삭제·순서 변경(≡ 드래그)·입력 방식(완료/진행중 · 날짜 표시 · 텍스트)을 바꿀 수 있어요. 칸 너비는 머리글 오른쪽 끝을 좌우로 드래그해서 조절해요.</div>
 <div id="imm" class="hxm" hidden><div class="bkp" role="dialog" aria-modal="true" aria-label="캐릭터 불러오기"><div class="hxh"><b>📥 숙제 체크표에서 캐릭터 불러오기</b><button id="imc" aria-label="닫기">✕</button></div><div class="bkb" id="imb"></div></div></div>
 <div id="hxm" class="hxm" hidden><div class="hxp" role="dialog" aria-modal="true" aria-label="도움말"><div class="hxh"><b>❓ 도움말</b><span class="hxt"><button id="hx1" class="on">화면으로 보기</button><button id="hx2">자세한 설명</button></span><button id="hxc" aria-label="닫기">✕</button></div><div class="hxb"><div id="hxa"></div><div id="hxd" hidden></div></div></div></div>
@@ -171,7 +179,7 @@ function norm(o){o.app=APPID;o.v=3;
 o.items=Array.isArray(o.items)&&o.items.length?o.items.map(String):IT.slice();
 var N=o.items.length;
 o.dw=clampW(o.dw||DW);
-delete o.hid;o.mode=fit(o.mode,[],N,"s").map(function(m){return m==="d"||m==="t"?m:"s"});delete o.pg;o.w=fit(o.w,[],N,o.dw).map(clampW);
+delete o.hid;o.dl=fit(o.dl,[],N,"").map(function(x){return /^\d{4}-\d{2}-\d{2}$/.test(x)?x:""});o.mode=fit(o.mode,[],N,"s").map(function(m){return m==="d"||m==="t"?m:"s"});delete o.pg;o.w=fit(o.w,[],N,o.dw).map(clampW);
 o.divs=Array.isArray(o.divs)?o.divs:[];o.lock=!!o.lock;
 o.mcols=Array.isArray(o.mcols)&&o.mcols.length?o.mcols.slice(0,12):["메모"];
 if(!Array.isArray(o.rows))o.rows=[];
@@ -231,21 +239,25 @@ var ICU='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rec
 function lockUI(){var b=document.getElementById("lk");b.innerHTML=S.lock?ICL:ICU;b.classList.toggle("on",!!S.lock);b.setAttribute("aria-pressed",S.lock?"true":"false");b.title=S.lock?"잠금 해제 (체크 변경 허용)":"체크 잠그기 (체크 변경 막기)"}
 function vis(i){return true}
 function hasDiv(b){return S.divs.indexOf(b)>=0}
+function dlOf(i){return S.mode[i]==="t"?"":(S.dl[i]||"")}
+function dlTag(i){var d=dlOf(i);if(!d)return"";var t=new Date(),a=new Date(t.getFullYear(),t.getMonth(),t.getDate()),p=d.split("-"),b=new Date(+p[0],+p[1]-1,+p[2]),n=Math.round((b-a)/864e5);
+return"<div class='dl"+(n<=0?" hot":n===1?" warn":"")+"' title='마감일 "+d+"'>"+(+p[1])+"/"+(+p[2])+" · "+(n>0?"D-"+n:n===0?"D-DAY":"D+"+(-n))+"</div>"}
+function dlEdit(i){if(S.mode[i]==="t")return"";return"<div class='dlr'><input class='di' type='date' data-dl='"+i+"' value='"+esc(S.dl[i]||"")+"' title='마감일' aria-label='마감일'>"+(S.dl[i]?"<button class='hb' data-dlc='"+i+"' title='마감일 해제' aria-label='마감일 해제'>×</button>":"")+"</div>"}
 function render(){
 var cols=[];for(var q=0;q<S.items.length;q++)if(vis(q))cols.push(q);
 var nw=edit?200:120,tot=nw;cols.forEach(function(i){tot+=S.w[i]});
 var h="<colgroup><col style='width:"+nw+"px'>"+cols.map(function(i){return"<col style='width:"+S.w[i]+"px'>"}).join("")+"</colgroup>";
 h+="<thead><tr><th class='nm'>"+memoAllBtn()+"캐릭터</th>"+cols.map(function(i){var t=S.items[i];
-if(edit)return"<th data-col='"+i+"'><div class='hc'><span class='dg' data-dcol='"+i+"' title='드래그해서 이동'>≡</span><input class='hi' data-it='"+i+"' value='"+esc(t)+"' maxlength='20' aria-label='이벤트 이름'></div><div class='hw'><span data-wl='"+i+"'>"+S.w[i]+"px</span></div><select class='ms' data-mode='"+i+"' title='입력 방식' aria-label='입력 방식'><option value='s'"+(S.mode[i]==="s"?" selected":"")+">완료/진행중</option><option value='d'"+(S.mode[i]==="d"?" selected":"")+">날짜 표시</option><option value='t'"+(S.mode[i]==="t"?" selected":"")+">텍스트</option></select><div class='hbs'><button class='hb' data-delcol='"+i+"'"+(S.items.length<=1?" disabled":"")+">삭제</button></div><span class='rz' data-rz='"+i+"' title='좌우로 드래그해서 너비 조절 (더블클릭: 기본 너비)'></span></th>";
-return"<th data-col='"+i+"'>"+esc(t)+"<button class='rb' data-rg='"+i+"' title='"+esc(t)+" 초기화' aria-label='"+esc(t)+" 초기화'>R</button></th>"}).join("")+"</tr></thead><tbody>";
-var today=ymd(new Date());
+if(edit)return"<th data-col='"+i+"'><div class='hc'><span class='dg' data-dcol='"+i+"' title='드래그해서 이동'>≡</span><input class='hi' data-it='"+i+"' value='"+esc(t)+"' maxlength='20' aria-label='이벤트 이름'></div><div class='hw'><span data-wl='"+i+"'>"+S.w[i]+"px</span></div><select class='ms' data-mode='"+i+"' title='입력 방식' aria-label='입력 방식'><option value='s'"+(S.mode[i]==="s"?" selected":"")+">완료/진행중</option><option value='d'"+(S.mode[i]==="d"?" selected":"")+">날짜 표시</option><option value='t'"+(S.mode[i]==="t"?" selected":"")+">텍스트</option></select>"+dlEdit(i)+"<div class='hbs'><button class='hb' data-delcol='"+i+"'"+(S.items.length<=1?" disabled":"")+">삭제</button></div><span class='rz' data-rz='"+i+"' title='좌우로 드래그해서 너비 조절 (더블클릭: 기본 너비)'></span></th>";
+return"<th data-col='"+i+"'>"+esc(t)+"<button class='rb' data-rg='"+i+"' title='"+esc(t)+" 초기화' aria-label='"+esc(t)+" 초기화'>R</button>"+dlTag(i)+"</th>"}).join("")+"</tr></thead><tbody>";
+var today=ymd(new Date()),ovl={};S.items.forEach(function(_,i){var d=dlOf(i);ovl[i]=!!d&&today>=d});
 S.rows.forEach(function(w,r){
 h+="<tr data-r='"+r+"'"+(hasDiv(r+1)?" class='dv'":"")+"><td class='nm'>"+memoBtn(w,r)+nameCell(w,r)+"</td>";
 cols.forEach(function(i){var m=S.mode[i],s=w.c[i]||".",dtx="",cl="",lb=esc(w.n)+" "+esc(S.items[i]);
 if(s!=="."){if(m==="t")s="X";else if(m==="d"){var dv=w.dv[i];s=dv===today?"D":"T";cl=" dt";dtx=dv?mdTxt(dv):""}}
 h+="<td class='c'>";
 if(s==="X"&&!edit)h+="<input class='tc' data-tx='"+r+":"+i+"' value='"+esc(w.tx[i]||"")+"'"+(S.lock||fNeed?" readonly":"")+" aria-label='"+lb+"'>";
-else h+="<button class='cell "+(s==="."?"N":s)+cl+"' data-r='"+r+"' data-i='"+i+"' aria-label='"+lb+"'>"+(s==="X"?esc(w.tx[i]||""):dtx)+"</button>";
+else h+="<button class='cell "+(s==="."?"N":s)+cl+(s==="T"&&ovl[i]?" ov":"")+"' data-r='"+r+"' data-i='"+i+"' aria-label='"+lb+"'>"+(s==="X"?esc(w.tx[i]||""):dtx)+"</button>";
 h+="</td>"});
 h+="</tr>"});
 h+="</tbody>";
@@ -296,6 +308,7 @@ document.getElementById("tb").addEventListener("click",function(e){
 var mb=e.target.closest("[data-memo]");if(mb){openMemo(+mb.dataset.memo);return}
 var ma=e.target.closest("[data-memoall]");if(ma){openMemoAll();return}
 if(fNeed)return;
+var dlc=e.target.closest("[data-dlc]");if(dlc){S.dl[+dlc.dataset.dlc]="";save();render();return}
 var dcb=e.target.closest("[data-delcol]");if(dcb){var di=+dcb.dataset.delcol;if(confirm("'"+S.items[di]+"' 이벤트를 삭제할까요? 모든 캐릭터의 해당 체크 상태도 함께 지워집니다."))delCol(di);return}
 var rb=e.target.closest("[data-rg]");if(rb){if(S.lock)return;var ri=+rb.dataset.rg;if(S.mode[ri]==="t"){if(!S.rows.some(function(w){return hasTxt(w.tx[ri])})||!confirm("'"+S.items[ri]+"' 열의 입력한 텍스트를 모두 지울까요?"))return;S.rows.forEach(function(w){w.tx[ri]=""})}else S.rows.forEach(function(w){var c=w.c.split("");if(c[ri]==="D"||c[ri]==="P")c[ri]="T";w.c=c.join("");w.dv[ri]="";w.dp[ri]=""});save();render();return}
 var ln=e.target.closest("[data-ln]");if(ln){var b0=+ln.dataset.ln+1,x0=S.divs.indexOf(b0);if(x0>=0)S.divs.splice(x0,1);else S.divs.push(b0);save();render();return}
@@ -310,6 +323,7 @@ w.c=c.join("");save();render()});
 document.getElementById("tb").addEventListener("change",function(e){if(fNeed){render();return}var el=e.target,v=el.value.trim(),d=el.dataset;
 if(d.nm!==undefined){if(v)S.rows[+d.nm].n=v;else el.value=S.rows[+d.nm].n}
 else if(d.it!==undefined){if(v)S.items[+d.it]=v;else el.value=S.items[+d.it]}
+else if(d.dl!==undefined){S.dl[+d.dl]=/^\d{4}-\d{2}-\d{2}$/.test(el.value)?el.value:"";save();render();return}
 else if(d.mode!==undefined){var mk=+d.mode;S.mode[mk]=el.value;S.rows.forEach(function(w){var c=w.c.split("");if(c[mk]==="D"||c[mk]==="P")c[mk]="T";w.c=c.join("")});save();render();return}
 else return;save()});
 document.getElementById("tb").addEventListener("input",function(e){var el=e.target;if(fNeed||S.lock||el.dataset.tx===undefined)return;var p=el.dataset.tx.split(":");S.rows[+p[0]].tx[+p[1]]=el.value;save()});
@@ -336,10 +350,10 @@ document.getElementById("imm").addEventListener("click",function(e){if(e.target=
 window.addEventListener("keydown",function(e){if(e.key==="Escape"&&impL)impClose()});
 function addRow(){S.rows.push({n:"새 캐릭터",c:new Array(S.items.length+1).join("T"),dv:blanks(S.items.length),dp:blanks(S.items.length),tx:blanks(S.items.length),memo:"",mt:blanks(S.mcols.length)});save();render();
 var el=document.querySelector("input[data-nm='"+(S.rows.length-1)+"']");if(el){el.focus();el.select();el.scrollIntoView({block:"nearest"})}}
-function addCol(){S.items.push("새 이벤트");S.mode.push("s");S.w.push(S.dw);S.rows.forEach(function(w){w.c+="T";w.dv.push("");w.dp.push("");w.tx.push("")});save();render();
+function addCol(){S.items.push("새 이벤트");S.mode.push("s");S.dl.push("");S.w.push(S.dw);S.rows.forEach(function(w){w.c+="T";w.dv.push("");w.dp.push("");w.tx.push("")});save();render();
 var el=document.querySelector("input[data-it='"+(S.items.length-1)+"']");if(el){el.focus();el.select();el.scrollIntoView({block:"nearest",inline:"nearest"})}}
-function delCol(i){if(S.items.length<=1)return;[S.items,S.mode,S.w].forEach(function(a){a.splice(i,1)});S.rows.forEach(function(w){["dv","dp","tx"].forEach(function(k){w[k].splice(i,1)});var c=w.c.split("");c.splice(i,1);w.c=c.join("")});save();render()}
-function moveCol(f,t){[S.items,S.mode,S.w].forEach(function(a){var x=a.splice(f,1)[0];a.splice(t,0,x)});S.rows.forEach(function(w){["dv","dp","tx"].forEach(function(k){var y=w[k].splice(f,1)[0];w[k].splice(t,0,y)});var c=w.c.split(""),x=c.splice(f,1)[0];c.splice(t,0,x);w.c=c.join("")})}
+function delCol(i){if(S.items.length<=1)return;[S.items,S.mode,S.w,S.dl].forEach(function(a){a.splice(i,1)});S.rows.forEach(function(w){["dv","dp","tx"].forEach(function(k){w[k].splice(i,1)});var c=w.c.split("");c.splice(i,1);w.c=c.join("")});save();render()}
+function moveCol(f,t){[S.items,S.mode,S.w,S.dl].forEach(function(a){var x=a.splice(f,1)[0];a.splice(t,0,x)});S.rows.forEach(function(w){["dv","dp","tx"].forEach(function(k){var y=w[k].splice(f,1)[0];w[k].splice(t,0,y)});var c=w.c.split(""),x=c.splice(f,1)[0];c.splice(t,0,x);w.c=c.join("")})}
 document.getElementById("addit").onclick=function(){if(!fNeed)addCol()};
 document.getElementById("addrow").onclick=function(){if(!fNeed)addRow()};
 document.getElementById("dwi").addEventListener("change",function(){if(fNeed){render();return}S.dw=clampW(this.value);this.value=S.dw;save()});
@@ -396,7 +410,8 @@ await snap("복원 전",1,1);S=ns;fForce=true;save();render();document.getElemen
 setInterval(function(){if(snapDirty&&Date.now()-lastSnap>=18e5)snap("자동")},300000);
 document.addEventListener("visibilitychange",function(){if(document.hidden&&snapDirty&&Date.now()-lastSnap>=3e5)snap("자동")});
 S=load();render();initFile();
-setInterval(stats,60000);
+var dk0=ymd(new Date());function dayChk(){stats();var k=ymd(new Date());if(k!==dk0){dk0=k;if(!edit)render()}}
+setInterval(dayChk,60000);document.addEventListener("visibilitychange",function(){if(!document.hidden)dayChk()});
 </script>
 <script>
 (function(){
@@ -411,12 +426,13 @@ var CSS=`:host{display:block;--bg:#eef1f6;--pn:#fff;--tx:#1c2433;--mu:#6b7589;--
 .sub{color:var(--mu);font-size:13px}
 .need{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-radius:8px;background:#d9480f;color:#fff;font-size:14px}.need .b{border:0;background:#fff;color:#b23b0b;font-weight:700}
 .legend{display:flex;gap:12px;color:var(--mu);font-size:12px;flex-wrap:wrap}.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--c)}
+.legend span.w::before{border:1px solid var(--mu)}
 table.t{border-collapse:separate;border-spacing:0;background:var(--pn);table-layout:auto}.t th,.t td{border-right:1px solid var(--ln);border-bottom:1px solid var(--ln);text-align:center;padding:0;overflow:hidden}
 .t th{background:var(--hd);color:#fff;font-weight:500;font-size:12px;padding:6px 4px;min-width:52px;position:relative}
 .t th.nm{text-align:left;padding:6px 8px}
 .t td.nm{text-align:left;padding:0 8px;font-size:12px;font-weight:500;white-space:nowrap;background:var(--pn);height:26px}
 .t td.c{height:26px}.cell{display:block;width:100%;height:26px;background:var(--na);font-size:12px;line-height:26px;text-align:center}
-.cell.T{background:var(--todo);color:#fff}.cell.D{background:var(--done);color:var(--done-t)}.cell.D::after{content:"✓";font-weight:700}.cell.dt::after{content:none}
+.cell.T{background:var(--pn);color:var(--tx)}.cell.T.ov{background:var(--todo);color:#fff}.cell.D{background:var(--done);color:var(--done-t)}.cell.D::after{content:"✓";font-weight:700}.cell.dt::after{content:none}
 .cell.P{background:repeating-linear-gradient(45deg,#f59f00,#f59f00 6px,#ffc247 6px,#ffc247 12px);color:#3a2500}.cell.P::after{content:"…";font-weight:700}
 .cell.N{background:repeating-linear-gradient(45deg,var(--na),var(--na) 4px,var(--na-l) 4px,var(--na-l) 5px)}
 .cell.X{background:var(--pn);color:var(--tx);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
@@ -425,6 +441,8 @@ table.t{border-collapse:separate;border-spacing:0;background:var(--pn);table-lay
 .dg{color:#c9d3ea;padding:0 3px;font-size:15px}td .dg{color:var(--mu)}
 .hc{display:flex;align-items:center;gap:2px}.hi{flex:1;min-width:0;height:22px;border:1px solid #ffffff55;background:#ffffff22;color:#fff;border-radius:4px;font-size:11px;padding:0 4px;display:block;line-height:20px}
 .hw{font-size:10px;margin-top:3px}
+.dl{font-size:10px;margin-top:3px;font-weight:400}.dl.warn{color:#ffd8a8}.dl.hot{display:inline-block;background:#e8590c;color:#fff;border-radius:8px;padding:0 6px;font-weight:700}
+.di{display:block;margin-top:3px;height:20px;line-height:18px;border:1px solid #ffffff55;background:#ffffff22;color:#fff;border-radius:4px;font-size:10px;padding:0 3px;text-align:left;white-space:nowrap}
 .ms{display:block;margin-top:3px;height:20px;line-height:18px;border:1px solid #ffffff55;background:#ffffff22;color:#fff;border-radius:4px;font-size:10px;padding:0 3px;text-align:left;white-space:nowrap}
 .rz{position:absolute;top:0;right:0;bottom:0;width:8px;background:rgba(255,255,255,.3)}
 .ni{display:inline-block;width:84px;height:20px;border:1px solid var(--ln);background:var(--bg);border-radius:5px;padding:0 6px;font-size:13px;line-height:18px;vertical-align:middle}
@@ -449,7 +467,7 @@ svg.ar{position:absolute;left:0;top:0;pointer-events:none;z-index:3;overflow:vis
 <div class="stage mk" id="sv"><div class="panel">
 <div class="row"><h1>이벤트 체크표</h1><button class="b" id="sv-edit">편집 모드</button><button class="b" id="sv-lock"></button><span id="sv-conn" class="row" style="gap:6px"><button class="b">📁 새 파일로 연결</button><button class="b">📂 기존 파일 연결</button></span><span class="sub">📁 event-data.json 에 자동 저장 중</span></div>
 <div class="sub gap" id="sv-sub" style="display:inline-block">10월 11일 (일) · 남은 이벤트 5개</div>
-<div id="sv-tb" style="overflow:hidden;margin-top:8px"></div><div class="legend gap" id="sv-leg"><span style="--c:var(--todo)">미완료</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--na-l)">해당 없음</span></div></div></div>
+<div id="sv-tb" style="overflow:hidden;margin-top:8px"></div><div class="legend gap" id="sv-leg"><span class="w" style="--c:var(--pn)">미완료</span><span style="--c:var(--todo)">마감일 도래</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--na-l)">해당 없음</span></div></div></div>
 <div class="stage mk" id="se" hidden><div class="panel">
 <div class="row"><h1>이벤트 체크표</h1><button class="b on" id="se-edit">편집 끝내기</button><button class="b" id="se-lock"></button></div>
 <div class="row gap"><span id="se-addbtns" class="row" style="gap:6px"><button class="b">＋ 이벤트 추가</button><button class="b">＋ 캐릭터 추가</button></span><button class="b" id="se-imp">📥 캐릭터 불러오기</button><span id="se-dw" class="row" style="gap:6px"><span class="b">기본 너비 150 px</span><button class="b">모든 이벤트에 적용</button></span></div>
@@ -473,14 +491,14 @@ var ICM='<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 3h10l4 4v14
 var ICL='<svg viewBox="0 0 24 24" width="16" height="16"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 var ICU='<svg viewBox="0 0 24 24" width="16" height="16"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 7.4-2.1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function mi(has,id){return '<span class="mi'+(has?' has':'')+'"'+(id?' id="'+id+'"':'')+'>'+ICM+'</span>'}
-function cel(s,t,id){var cls='cell '+s+((s==='D'||s==='T')&&t?' dt':'');return '<td class="c"><div class="'+cls+'"'+(id?' id="'+id+'"':'')+'>'+(t||'')+'</div></td>'}
-var IT=[['이벤트1','완료/진행중'],['이벤트2','날짜 표시'],['이벤트3','텍스트'],['이벤트4','완료/진행중']];
-var ST=[['캐릭터1',['D'],['D','10/11'],['X','2회 남음'],['P']],['캐릭터2',['T'],['T','10/9'],['X','완료'],['D']],['캐릭터3',['D'],['T','10/8'],['X','메모'],['N']]];
+function cel(s,t,id){var red=s==='Tr';if(red)s='T';var cls='cell '+s+(red?' ov':'')+((s==='D'||s==='T')&&t?' dt':'');return '<td class="c"><div class="'+cls+'"'+(id?' id="'+id+'"':'')+'>'+(t||'')+'</div></td>'}
+var IT=[['이벤트1','완료/진행중','2026-10-10','10/10 · D+1','hot'],['이벤트2','날짜 표시','2026-10-11','10/11 · D-DAY','hot'],['이벤트3','텍스트','','',''],['이벤트4','완료/진행중','2026-11-15','11/15 · D-35','']];
+var ST=[['캐릭터1',['D'],['D','10/11'],['X','2회 남음'],['P']],['캐릭터2',['Tr'],['Tr','10/9'],['X','완료'],['T']],['캐릭터3',['D'],['Tr','10/8'],['X','메모'],['N']]];
 function mock(edit,p){var W=edit?112:100,NW=edit?200:120,n=IT.length;
 var h='<table class="t" style="table-layout:fixed;width:'+(NW+W*n)+'px"><colgroup><col style="width:'+NW+'px">'+IT.map(function(){return '<col style="width:'+W+'px">'}).join('')+'</colgroup><thead><tr><th class="nm">'+(edit?'':mi(1,p+'memoall'))+'캐릭터</th>';
 IT.forEach(function(t,i){
-if(edit){var f=i===0,l=i===n-1;h+='<th><div class="hc"><span class="dg"'+(f?' id="'+p+'idrag"':'')+'>≡</span><span class="hi">'+t[0]+'</span></div><div class="hw">'+W+'px</div><span class="ms"'+(l?' id="'+p+'mode"':'')+'>'+t[1]+' ▾</span><div><button class="hb"'+(l?' id="'+p+'del"':'')+'>삭제</button></div><span class="rz"'+(l?' id="'+p+'rz"':'')+'></span></th>'}
-else h+='<th>'+t[0]+'<button class="rb"'+(i===n-1?' id="'+p+'rg"':'')+'>R</button></th>'});
+if(edit){var f=i===0,l=i===n-1;h+='<th><div class="hc"><span class="dg"'+(f?' id="'+p+'idrag"':'')+'>≡</span><span class="hi">'+t[0]+'</span></div><div class="hw">'+W+'px</div><span class="ms"'+(l?' id="'+p+'mode"':'')+'>'+t[1]+' ▾</span>'+(t[1]==='텍스트'?'':'<span class="di"'+(l?' id="'+p+'dl"':'')+'>'+t[2]+'</span>')+'<div><button class="hb"'+(l?' id="'+p+'del"':'')+'>삭제</button></div><span class="rz"'+(l?' id="'+p+'rz"':'')+'></span></th>'}
+else h+='<th>'+t[0]+'<button class="rb"'+(i===n-1?' id="'+p+'rg"':'')+'>R</button>'+(t[3]?'<div class="dl '+t[4]+'"'+(i===n-1?' id="'+p+'dl"':'')+'>'+t[3]+'</div>':'')+'</th>'});
 h+='</tr></thead><tbody>';
 ST.forEach(function(r,k){h+='<tr><td class="nm">'+(edit?'<span class="dg"'+(k===1?' id="'+p+'drag"':'')+'>≡</span><span class="ni">'+r[0]+'</span><span class="mv'+(k===0?' on" id="'+p+'div"':'"')+'>━</span><span class="del"'+(k===2?' id="'+p+'delr"':'')+'>×</span>':mi(k===1,k===1?p+'memo':'')+r[0])+'</td>';
 r.slice(1).forEach(function(c,i){var id='';
@@ -500,9 +518,10 @@ var CO={sv:[
 ['l','sv-memo','캐릭터 메모','이름 옆 아이콘을 누르면 그 캐릭터만의 메모창이 열려요. 노란색이면 메모가 적혀 있다는 뜻이에요.'],
 ['r','sv-rg','R 초기화','그 이벤트 열 전체를 미완료로 되돌려요. 날짜 표시 열은 날짜도 지워지고, 텍스트 열은 확인창 뒤에 입력한 글자를 모두 지워요.'],
 ['r','sv-cP','완료/진행중 칸','누르면 미완료(빨강)와 완료(초록)가 번갈아 바뀌고, 우클릭하면 진행중(주황)이 돼요.'],
-['b','sv-cdate','날짜 표시 칸','누르면 오늘 날짜(월/일)가 적히며 초록색이 돼요. 오늘이 아니면 날짜만 적힌 빨간 칸이고, 다시 누르면 직전 날짜로 돌아가요.'],
+['r','sv-dl','마감일 표시','이벤트 머리글 아래에 마감일과 남은 일수(D-n)가 표시돼요. 마감일이 되면 주황색 배지로 바뀌고 그 이벤트의 미완료 칸이 빨간색이 돼요. 마감일이 없으면 아무것도 표시되지 않아요.'],
+['b','sv-cdate','날짜 표시 칸','누르면 오늘 날짜(월/일)가 적히며 초록색이 돼요. 오늘이 아니면 날짜만 적힌 칸(마감 전 흰색, 마감일 도래 후 빨간색)이고, 다시 누르면 직전 날짜로 돌아가요.'],
 ['b','sv-ctext','텍스트 칸','칸을 눌러 바로 글자를 입력해요. 체크 표시 없이 입력한 글자만 보여요.'],
-['b','sv-leg','범례','칸 색의 의미예요. 줄무늬 회색은 해당 없는 칸이고, 편집 모드에서 칸을 눌러 만들어요.']],
+['b','sv-leg','범례','칸 색의 의미예요. 미완료는 흰색이고 마감일이 되면 빨간색이 돼요. 줄무늬 회색은 해당 없는 칸이고, 편집 모드에서 칸을 눌러 만들어요.']],
 se:[
 ['t','se-edit','편집 끝내기','편집이 끝나면 눌러서 보기 모드로 돌아가요.'],
 ['t','se-addbtns','＋ 이벤트 / 캐릭터 추가','이벤트는 맨 오른쪽에, 캐릭터는 맨 아래에 새로 생겨요.'],
@@ -513,6 +532,7 @@ se:[
 ['l','se-div','━ 굵은 줄','캐릭터 아래에 굵은 구분선을 넣고 빼요. (노란색이면 켜짐)'],
 ['l','se-delr','× 캐릭터 삭제','캐릭터를 삭제해요. 확인창이 한 번 떠요.'],
 ['r','se-mode','입력 방식','이벤트마다 완료/진행중 · 날짜 표시 · 텍스트 중에서 골라요. 바꾸면 기존 완료·진행중 칸은 미완료가 돼요.'],
+['r','se-dl','마감일','눌러서 날짜를 고르면 그 이벤트의 마감일이 정해져요. 이 날짜가 되면 미완료 칸이 빨간색으로 바뀌어요. 비우려면 옆의 × 버튼을 눌러요. 텍스트 방식에는 없어요.'],
 ['r','se-del','삭제','이벤트를 지워요. 모든 캐릭터의 해당 칸 기록도 함께 지워지고, 이벤트는 최소 1개 남아야 해요.'],
 ['r','se-rz','너비 드래그','머리글 오른쪽 끝 막대를 좌우로 끌면 너비가 바뀌고, 끄는 동안 현재 너비(px)가 표시돼요. 더블클릭하면 기본 너비로 돌아가요.'],
 ['b','se-cell','칸 누르기','편집 모드에서는 칸을 누르면 일반 칸과 \'해당 없음\'(줄무늬)이 번갈아 바뀌어요.']]};
@@ -556,14 +576,17 @@ var D=[
 ['① 화면 위쪽 버튼과 표시','저장 상태 문구','<span class="sub">📁 event-data.json 에 자동 저장 중 · 마지막 저장 오전 9:12</span>','<p>현재 연결된 파일 이름과 마지막으로 저장된 시각이에요. ⚠가 나오면 저장에 문제가 있다는 뜻이에요.</p>'],
 ['① 화면 위쪽 버튼과 표시','연결 필요 안내','<div class="need"><b>⚠ 데이터 파일 연결이 필요해요</b><button class="b">📁 새 파일로 연결</button></div>','<p>파일이 연결되지 않았을 때 나타나요. 이 상태에서는 체크·편집이 막혀 있어서, 연결한 뒤에 사용할 수 있어요.</p>'],
 ['① 화면 위쪽 버튼과 표시','남은 이벤트 수','<span class="sub">10월 11일 (일) · 남은 이벤트 5개</span>','<p>오늘 날짜와 아직 끝내지 못한 칸의 개수예요.</p><ul><li>완료/진행중 방식: 미완료·진행중 칸을 세요.</li><li>날짜 표시 방식: 오늘 날짜로 완료하지 않은 칸을 세요.</li><li>텍스트 방식 열과 해당 없음 칸은 세지 않아요.</li></ul>'],
-['① 화면 위쪽 버튼과 표시','범례','<div class="legend"><span style="--c:var(--todo)">미완료</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중</span><span style="--c:var(--na-l)">해당 없음</span></div>','<p>칸 색의 의미를 알려 줘요. 표 바로 아래에 있어요.</p>'],
+['① 화면 위쪽 버튼과 표시','범례','<div class="legend"><span class="w" style="--c:var(--pn)">미완료</span><span style="--c:var(--todo)">마감일 도래</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중</span><span style="--c:var(--na-l)">해당 없음</span></div>','<p>칸 색의 의미를 알려 줘요. 표 바로 아래에 있어요. 미완료는 흰색이고 마감일이 되면 빨간색이 돼요.</p>'],
+['② 칸과 입력 방식','미완료 칸의 색 · 마감일',cs('T','마감 전')+cs('T ov','마감일 도래')+cs('D','완료'),'<p>미완료 칸은 평소에는 <b>흰색</b>이고, 그 이벤트의 <b>마감일이 되면(당일부터) 빨간색</b>으로 바뀌어요. 완료 칸은 마감일과 관계없이 초록색이에요.</p><ul><li>마감일을 정하지 않은 이벤트는 계속 흰색이에요.</li><li>마감일은 편집 모드의 이벤트 머리글에서 정해요. 텍스트 방식 열에는 마감일이 없어요.</li><li>마감일을 넘겨도 미완료 칸은 계속 빨간색이에요.</li></ul>'],
+['② 칸과 입력 방식','마감일 표시',T('<tr><th style="width:150px">이벤트1<button class="rb">R</button><div class="dl">11/15 · D-35</div></th><th style="width:150px">이벤트2<button class="rb">R</button><div class="dl warn">10/12 · D-1</div></th><th style="width:150px">이벤트3<button class="rb">R</button><div class="dl hot">10/11 · D-DAY</div></th></tr>'),'<p>마감일을 정한 이벤트는 머리글 아래에 <b>마감일 · 남은 일수</b>가 표시돼요.</p><ul><li>D-n: 마감까지 n일 남음 (하루 전은 연한 주황색)</li><li>D-DAY: 오늘이 마감일 (주황색 배지)</li><li>D+n: 마감일이 n일 지남 (주황색 배지)</li></ul><p>날짜가 바뀌면 자동으로 갱신돼요.</p>'],
 ['② 칸과 입력 방식','완료/진행중 방식',cs('T','미완료')+cs('D','완료')+cs('P','진행중')+cs('N','해당 없음'),'<p>이벤트를 만들면 처음에는 이 방식이에요.</p><ul><li>칸을 누르면 <b>미완료 ↔ 완료</b>가 바뀌어요.</li><li>칸을 <b>우클릭</b>하면 미완료 ↔ 진행중(주황)이 바뀌고, 진행중 칸을 누르면 완료가 돼요.</li><li>해당 없음(줄무늬)은 그 캐릭터에게 필요 없는 칸이에요.</li></ul>'],
-['② 칸과 입력 방식','날짜 표시 방식',cs('T','미완료','10/8')+cs('D','오늘 완료','10/11'),'<p>칸을 누르면 오늘 날짜(월/일)가 적히고, 마지막으로 완료한 날짜를 기억해요.</p><ul><li>오늘 날짜면 초록색, 아니면 빨간색이에요.</li><li>오늘 완료한 칸을 다시 누르면 직전 날짜로 돌아가요.</li></ul>'],
+['② 칸과 입력 방식','날짜 표시 방식',cs('T','미완료','10/8')+cs('T ov','마감 도래','10/8')+cs('D','오늘 완료','10/11'),'<p>칸을 누르면 오늘 날짜(월/일)가 적히고, 마지막으로 완료한 날짜를 기억해요.</p><ul><li>오늘 날짜면 초록색, 아니면 빨간색이에요.</li><li>오늘 완료한 칸을 다시 누르면 직전 날짜로 돌아가요.</li></ul>'],
 ['② 칸과 입력 방식','텍스트 방식','<span class="st"><div class="cell X" style="width:120px">2회 남음</div><span class="cap">입력한 글자</span></span>','<p>완료·미완료 구분 없이 <b>글자만 입력</b>하는 방식이에요. 칸을 눌러 바로 입력하면 자동 저장돼요. 체크 잠금을 켜면 입력할 수 없어요.</p>'],
 ['② 칸과 입력 방식','머리글의 R 버튼',T('<tr><th style="width:130px">이벤트1<button class="rb">R</button></th></tr>'),'<p>그 이벤트 열 전체를 되돌려요.</p><ul><li>완료/진행중 방식: 모두 미완료로</li><li>날짜 표시 방식: 모두 미완료로, 날짜도 지움</li><li>텍스트 방식: 확인창 뒤에 입력한 글자를 모두 지움</li></ul>'],
 ['② 칸과 입력 방식','캐릭터 이름 칸 · 메모 아이콘',T('<tr><td class="nm">'+mi(0)+'캐릭터1</td></tr><tr><td class="nm">'+mi(1)+'캐릭터2</td></tr>'),'<p>이름 옆 아이콘은 그 캐릭터의 메모예요. 노란색이면 메모가 적혀 있다는 뜻이에요.</p>'],
 ['③ 편집 모드','이벤트·캐릭터 추가','<button class="b">＋ 이벤트 추가</button><button class="b">＋ 캐릭터 추가</button>','<ul><li><b>이벤트 추가</b>: 맨 오른쪽에 \'새 이벤트\' 열이 생기고 이름 칸이 바로 선택돼요. 너비는 기본 너비로, 방식은 완료/진행중으로 시작해요.</li><li><b>캐릭터 추가</b>: 맨 아래에 새 캐릭터 행이 생겨요.</li></ul>'],
-['③ 편집 모드','이벤트 머리글 편집',T('<tr><th style="width:140px"><div class="hc"><span class="dg">≡</span><span class="hi">이벤트2</span></div><div class="hw">150px</div><span class="ms">날짜 표시 ▾</span><div><button class="hb">삭제</button></div><span class="rz"></span></th></tr>'),'<ul><li><b>≡</b>: 좌우로 끌어서 이벤트 순서를 바꿔요.</li><li><b>이름 칸</b>: 눌러서 바로 고쳐요.</li><li><b>입력 방식</b>: 완료/진행중 · 날짜 표시 · 텍스트 중에서 골라요. 바꾸면 기존 완료·진행중 칸은 미완료가 돼요(날짜와 텍스트 기록은 남아요).</li><li><b>삭제</b>: 이벤트와 모든 캐릭터의 해당 기록을 지워요. 이벤트는 최소 1개 남아야 해요.</li></ul>'],
+['③ 편집 모드','이벤트 머리글 편집',T('<tr><th style="width:140px"><div class="hc"><span class="dg">≡</span><span class="hi">이벤트2</span></div><div class="hw">150px</div><span class="ms">날짜 표시 ▾</span><span class="di">2026-11-15</span><div><button class="hb">삭제</button></div><span class="rz"></span></th></tr>'),'<ul><li><b>≡</b>: 좌우로 끌어서 이벤트 순서를 바꿔요.</li><li><b>이름 칸</b>: 눌러서 바로 고쳐요.</li><li><b>마감일</b>: 날짜를 골라 마감일을 정해요.</li><li><b>입력 방식</b>: 완료/진행중 · 날짜 표시 · 텍스트 중에서 골라요. 바꾸면 기존 완료·진행중 칸은 미완료가 돼요(날짜와 텍스트 기록은 남아요).</li><li><b>삭제</b>: 이벤트와 모든 캐릭터의 해당 기록을 지워요. 이벤트는 최소 1개 남아야 해요.</li></ul>'],
+['③ 편집 모드','마감일 설정',T('<tr><th style="width:150px">이벤트1<span class="di">2026-11-15</span></th></tr>'),'<p>이벤트 머리글의 날짜 칸을 눌러 마감일을 골라요. 고른 날짜는 바로 저장되고, 일반 화면의 머리글에도 표시돼요.</p><ul><li>옆의 <b>×</b> 버튼으로 마감일을 지워요(지우면 미완료 칸은 항상 흰색).</li><li>입력 방식을 텍스트로 바꾸면 마감일 칸이 사라지고 표시도 되지 않아요. 다시 바꾸면 이전에 정한 날짜가 그대로 살아나요.</li></ul>'],
 ['③ 편집 모드','칸 너비 조절',T('<tr><th style="width:150px">이벤트1<span class="rz"></span></th></tr>'),'<p>머리글 오른쪽 끝의 얇은 막대를 <b>좌우로 드래그</b>하면 칸 너비가 바뀌어요.</p><ul><li>끄는 동안 머리글에 현재 너비(px)가 표시돼요.</li><li>막대를 <b>더블클릭</b>하면 그 열이 기본 너비로 돌아가요.</li><li>너비는 40~300px 범위예요.</li></ul>'],
 ['③ 편집 모드','기본 너비','<span class="b">기본 너비 150 px</span><button class="b">모든 이벤트에 적용</button>','<ul><li><b>기본 너비</b>: 새로 추가하는 이벤트의 너비예요. 처음 값은 150px이에요.</li><li><b>모든 이벤트에 적용</b>: 지금 있는 모든 열을 기본 너비로 맞춰요.</li></ul>'],
 ['③ 편집 모드','캐릭터 행 편집',T('<tr><td class="nm"><span class="dg">≡</span><span class="ni">캐릭터2</span><span class="mv on">━</span><span class="del">×</span></td></tr>'),'<ul><li><b>≡</b>: 끌어서 캐릭터 순서를 바꿔요.</li><li><b>이름 칸</b>: 눌러서 바로 고쳐요.</li><li><b>━</b>: 아래에 굵은 구분선을 넣고 빼요.</li><li><b>×</b>: 캐릭터를 삭제해요(확인창이 떠요).</li></ul>'],
