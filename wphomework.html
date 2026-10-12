@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- wphomework v1.0 · 2026-10-12 -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -143,6 +144,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 .gt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;max-width:760px}.gt .gl{color:var(--mu);font-size:12px;margin-right:2px}
 .gt button{border:1px solid var(--ln);background:var(--pn);color:var(--tx);border-radius:14px;padding:2px 10px;font-size:12px;opacity:.6}.gt button.on{background:var(--ac);border-color:var(--ac);color:#2a2000;opacity:1}.gt button:disabled{opacity:.35;cursor:default}
 .lgb{padding:0 16px 24px}.lgb .legend{margin-top:0}
+.ver{padding:0 16px 20px;color:var(--mu);font-size:11px;text-align:right}
 .stp{background:var(--bg);color:var(--tx);border-radius:10px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 .stb{padding:12px 14px;display:flex;flex-direction:column;gap:10px}.stf{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mu)}
 .stf input{border:1px solid var(--ln);background:var(--pn);color:var(--tx);border-radius:6px;padding:6px 8px;font:inherit;font-size:14px;min-width:0}.stc{font-size:13px;display:flex;gap:6px;align-items:center}.stdr{display:flex;gap:6px}.stdr input{flex:1}
@@ -170,6 +172,7 @@ body.fneed #wrap .mi{pointer-events:auto}
 <div class="wrap" id="wrap"><table id="tb"></table></div>
 <div class="lgb"><div class="legend"><span style="--c:var(--todo)">미완료</span><span class="w" style="--c:var(--tw)">미완료(주간·월간 마감 전)</span><span style="--c:var(--done)">완료</span><span style="--c:#f59f00">진행중 (우클릭)</span><span style="--c:var(--nn-l)">해당 없음</span></div></div>
 <div class="note">사용법과 각 버튼의 설명은 위쪽의 <b>❓ 도움말</b> 버튼에서 볼 수 있어요. 대분류·항목 머리글과 캐릭터 이름 칸을 <b>우클릭</b>(또는 더블클릭)하면 편집 모드 없이 설정을 바꿀 수 있어요.</div>
+<div class="ver" id="ver">버전 v1.0 · 만든 날짜 2026-10-12</div>
 <div id="stm" class="hxm" hidden><div class="stp" role="dialog" aria-modal="true" aria-labelledby="stt"><div class="hxh"><b id="stt"></b></div><div class="stb" id="stb"></div><div class="stf2"><button id="st-del" class="stx">삭제</button><span><button id="st-cancel">취소</button> <button id="st-ok" class="on">확인</button></span></div></div></div>
 <div id="bkm" class="hxm" hidden><div class="bkp" role="dialog" aria-modal="true" aria-label="자동 백업"><div class="hxh"><b>🗂 자동 백업</b><button id="bkc" aria-label="닫기">✕</button></div><div class="mnote" style="padding:8px 14px 0;margin:0">데이터 파일이 연결된 동안 저장된 데이터를 이 브라우저에 자동으로 백업해요. 최근 하루는 30분 간격 최대 12개, 그 이전은 하루 1개씩 14일치를 보관하고, 파일을 바꾸거나 복원하기 직전에도 따로 남겨요. 브라우저 데이터를 지우면 백업도 사라지니 중요한 시점은 '내려받기'로 따로 보관하세요.</div><div class="bkb" id="bkb"></div></div></div>
 <div id="hxm" class="hxm" hidden><div class="hxp" role="dialog" aria-modal="true" aria-label="도움말"><div class="hxh"><b>❓ 도움말</b><span class="hxt"><button id="hx1" class="on">화면으로 보기</button><button id="hx2">자세한 설명</button></span><button id="hxc" aria-label="닫기">✕</button></div><div class="hxb"><div id="hxa"></div><div id="hxd" hidden></div></div></div></div>
@@ -400,14 +403,14 @@ else if(d.rs){if(fNeed)return;if(!confirm(bTime(t)+" 백업으로 되돌릴까�
 await snap("복원 전",1,1);S=ns;sync();fForce=true;save();render();document.getElementById("bkm").hidden=true}});
 setInterval(function(){if(snapDirty&&Date.now()-lastSnap>=18e5)snap("자동")},300000);
 document.addEventListener("visibilitychange",function(){if(document.hidden&&snapDirty&&Date.now()-lastSnap>=3e5)snap("자동")});
-function ddOf(d){var g=new Date(Date.now()-18000000),a=new Date(g.getFullYear(),g.getMonth(),g.getDate()),p=String(d).split("-");return Math.round((new Date(+p[0],+p[1]-1,+p[2])-a)/864e5)}
-function dlBadge(i){if(GI[i]<4||!S.dl[i])return"";var n=ddOf(S.dl[i]);return"<br><em class='dd"+(n<=0?" d0":n===1?" d1":"")+"' title='마감 "+esc(S.dl[i])+"'>"+(n<0?"마감 지남":n===0?"D-DAY":"D-"+n)+"</em>"}
+function ddOf(d){var g=new Date(),a=new Date(g.getFullYear(),g.getMonth(),g.getDate()),p=String(d).split("-");return Math.round((new Date(+p[0],+p[1]-1,+p[2])-a)/864e5)}
+function dlBadge(i){if(GI[i]<4||!S.dl[i])return"";var n=ddOf(S.dl[i]);return"<em class='dd"+(n<=0?" d0":n===1?" d1":"")+"' style='display:table;margin:1px auto 0' title='마감 "+esc(S.dl[i])+"'>"+(n<0?"마감 지남":n===0?"D-DAY":"D-"+n)+"</em>"}
 var stT=null;
 function stF(l,h){return"<label class='stf'><span>"+l+"</span>"+h+"</label>"}
 function stC(id,l,on,dis){return"<label class='stc'><input type='checkbox' id='"+id+"'"+(on?" checked":"")+(dis?" disabled":"")+"> "+l+"</label>"}
 function stOpen(k,i){if(fNeed)return;stT={k:k,i:i};var t,h="",del=false;
 if(k==="g"){t="대분류 설정 · "+S.groups[i];h=stF("이름","<input id='st-n' maxlength='8' value='"+esc(S.groups[i])+"'>")+stC("st-show","표에 표시",!S.gh[i]);if(i>=1&&i<=3)h+=stC("st-auto","자동 초기화 (마감 시각 이후 자동으로 미완료)",!!S.auto[i]);h+=stF("항목 추가","<input id='st-add' maxlength='10' placeholder='새 항목 이름 (비워 두면 추가 안 함)'>")}
-else if(k==="i"){t="항목 설정 · "+S.items[i];del=S.sizes[GI[i]]>1;h=stF("이름","<input id='st-n' maxlength='10' value='"+esc(S.items[i])+"'>")+stC("st-hid","숨김 (집계에서도 제외)",!!S.hid[i]);if(!S.dt[i])h+=stC("st-pg","진행중 상태 사용 (칸 우클릭)",!!S.pg[i]);if(GI[i]>=4)h+=stF("마감일","<span class='stdr'><input type='date' id='st-dl' value='"+esc(S.dl[i]||"")+"'><button type='button' id='st-dlx'>지우기</button></span>")+"<div class='mnote' style='margin:0'>마감 하루 전(D-1)부터 미완료 칸이 빨간색으로 바뀌어요. 비워 두면 항상 빨간색이에요.</div>"}
+else if(k==="i"){t="항목 설정 · "+S.items[i];del=S.sizes[GI[i]]>1;h=stF("이름","<input id='st-n' maxlength='10' value='"+esc(S.items[i])+"'>")+stC("st-hid","숨김 (집계에서도 제외)",!!S.hid[i]);if(!S.dt[i])h+=stC("st-pg","진행중 상태 사용 (칸 우클릭)",!!S.pg[i]);if(GI[i]>=4)h+=stF("마감일","<span class='stdr'><input type='date' id='st-dl' value='"+esc(S.dl[i]||"")+"'><button type='button' id='st-dlx'>지우기</button></span>")+"<div class='mnote' style='margin:0'>마감일 밤 12시까지가 기한이에요. 마감 하루 전(D-1)부터 미완료 칸이 빨간색으로 바뀌어요. 비워 두면 항상 빨간색이에요.</div>"}
 else{t="캐릭터 설정 · "+S.rows[i].n;del=true;h=stF("이름","<input id='st-n' maxlength='12' value='"+esc(S.rows[i].n)+"'>")+stC("st-ln","아래에 굵은 줄",hasDiv(i+1),i===S.rows.length-1)}
 document.getElementById("stt").textContent=t;document.getElementById("stb").innerHTML=h;document.getElementById("st-del").hidden=!del;document.getElementById("stm").hidden=false;
 var x=document.getElementById("st-dlx");if(x)x.onclick=function(){document.getElementById("st-dl").value=""};
@@ -528,7 +531,7 @@ var D=[
 ['② 표 읽는 법','칸의 상태',cs('T','미완료')+cs('T W','미완료(여유)')+cs('D','완료')+cs('P','진행중')+cs('N','해당 없음'),'<p>칸을 누르면 <b>미완료 ↔ 완료</b>가 바뀌어요.</p><ul><li>주간·월간 항목의 미완료 칸은 마감까지 여유가 있으면 <b>흰색</b>이고, 마감 <b>하루 전(D-1)</b>부터 빨간색으로 바뀌어요.</li><li>진행중(주황): 편집 모드에서 항목의 \'진행\'을 켠 뒤, 칸을 <b>우클릭</b>하면 표시돼요. 진행중 칸을 누르면 완료가 돼요.</li><li>해당 없음(줄무늬)은 그 캐릭터에게 필요 없는 칸이에요.</li></ul>'],
 ['② 표 읽는 법','날짜가 적힌 칸',cs('T','미완료','10/8')+cs('D','오늘 완료','10/9'),'<p>이벤트(욕망의숲)와 특수 분류의 칸은 마지막으로 완료한 <b>날짜(월/일)</b>가 적혀요. 특수 분류에 항목을 추가해도 같은 규칙이 적용돼요. 오늘 날짜면 초록색, 아니면 빨간색이에요.</p>'],
 ['② 표 읽는 법','대분류 머리글 · R · 마감 · ⟳',T('<tr><th class="g1 gs">일일<button class="rb">R</button></th><th class="g2 dl gs">주간<span class="bd">마감</span><button class="rb">R</button></th><th class="g3 gs">월간<span class="ao">⟳</span><button class="rb">R</button></th></tr>'),'<ul><li><b>R</b>: 그 분류 전체를 미완료로 되돌려요.</li><li><b>마감</b>: 오늘이 마감일이면 주황색으로 표시돼요.</li><li><b>⟳</b>: 자동 초기화를 켜 둔 분류예요.</li></ul>'],
-['② 표 읽는 법','항목 마감일 (시즌·쿠폰·제전·특수)',T('<tr><th class="i1 gs">시즌1<br><em class="dd d1">D-1</em></th><th class="i1">시즌2<br><em class="dd">D-8</em></th></tr>')+cs('T','D-1부터')+cs('T W','여유 있을 때'),'<p>시즌·쿠폰·제전·특수 분류의 항목은 <b>항목마다 마감일</b>을 정할 수 있어요(우클릭 설정창에서 입력). 마감일을 정한 항목은 머리글에 남은 날(D-숫자)이 표시돼요.</p><ul><li>미완료 칸은 평소 <b>흰색</b>이고, 마감 <b>하루 전(D-1)</b>부터 빨간색이에요. 마감일 기준 시각은 오전 5시예요.</li><li>마감일을 비워 두면 예전처럼 항상 빨간색이에요.</li></ul>'],
+['② 표 읽는 법','항목 마감일 (시즌·쿠폰·제전·특수)',T('<tr><th class="i1 gs">시즌1<em class="dd d1" style="display:table;margin:1px auto 0">D-1</em></th><th class="i1">시즌2<em class="dd" style="display:table;margin:1px auto 0">D-8</em></th></tr>')+cs('T','D-1부터')+cs('T W','여유 있을 때'),'<p>시즌·쿠폰·제전·특수 분류의 항목은 <b>항목마다 마감일</b>을 정할 수 있어요(우클릭 설정창에서 입력). 마감일을 정한 항목은 머리글에 남은 날(D-숫자)이 표시돼요.</p><ul><li>미완료 칸은 평소 <b>흰색</b>이고, 마감 <b>하루 전(D-1)</b>부터 빨간색이에요. 마감일은 밤 12시까지예요(욕망의숲 날짜 규칙과 같아요).</li><li>마감일을 비워 두면 예전처럼 항상 빨간색이에요.</li></ul>'],
 ['② 표 읽는 법','캐릭터 이름 칸 · 메모 아이콘',T('<tr><td class="nm dn">'+mi(0)+'캐릭터1</td></tr><tr><td class="nm">'+mi(1)+'캐릭터2</td></tr>'),'<ul><li>일일 숙제를 <b>모두 마치면</b> 이름 칸이 초록색으로 바뀌어요.</li><li>이름 옆 아이콘은 그 캐릭터의 메모예요. 노란색이면 메모가 적혀 있다는 뜻이에요.</li></ul>'],
 ['③ 편집 모드','캐릭터 행 편집',T('<tr><td class="nm"><span class="dg">≡</span><span class="ni">캐릭터2</span><span class="mv on">━</span><span class="del">×</span></td></tr>'),'<ul><li><b>≡</b>: 끌어서 캐릭터 순서를 바꿔요.</li><li><b>이름 칸</b>: 눌러서 바로 고쳐요.</li><li><b>━</b>: 아래에 굵은 구분선을 넣고 빼요.</li><li><b>×</b>: 캐릭터를 삭제해요(확인창이 떠요).</li><li>머리글의 <b>＋</b>로 캐릭터를 추가해요.</li></ul>'],
 ['③ 편집 모드','대분류 머리글 편집',T('<tr><th class="g2 gs"><span class="hi">주간</span><button class="rb">R</button><button class="hb on">자동초기화 ✓</button><button class="rb ab">＋</button></th></tr>'),'<ul><li>분류 이름을 직접 고칠 수 있어요.</li><li><b>＋</b>: 그 분류 끝에 새 항목을 추가해요.</li><li><b>자동초기화</b>: 일일·주간·월간에만 있어요. 켜면 마감 시각(오전 5시)이 지난 뒤 자동으로 미완료로 돌아가요. 켠 순간에는 초기화되지 않고 다음 마감부터 적용돼요.</li></ul>'],
